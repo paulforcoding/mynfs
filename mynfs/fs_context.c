@@ -1098,7 +1098,7 @@ static int nfs23_parse_monolithic(struct fs_context *fc,
 		fallthrough;
 	case 6:
 		if (data->flags & NFS_MOUNT_VER3) {
-			if (data->root.size > NFS3_FHSIZE || data->root.size == 0)
+			if (data->root.size > NFS3_FHSIZE)
 				goto out_invalid_fh;
 			mntfh->size = data->root.size;
 			ctx->version = 3;
@@ -1136,7 +1136,7 @@ static int nfs23_parse_monolithic(struct fs_context *fc,
 		ctx->acregmax	= data->acregmax;
 		ctx->acdirmin	= data->acdirmin;
 		ctx->acdirmax	= data->acdirmax;
-		ctx->need_mount	= false;
+		ctx->need_mount	= (data->root.size == 0);
 
 		if (!is_remount_fc(fc)) {
 			memcpy(sap, &data->addr, sizeof(data->addr));

@@ -44,18 +44,18 @@
 #define MYNFS4_MOUNT_UNSHARED   0x8000
 #define MYNFS4_MOUNT_FLAGMASK   0xFFFF
 
-/* NFSv3 mount flags */
+/* NFSv3 mount flags — must match kernel's include/uapi/linux/nfs_mount.h */
 #define MYNFS_MOUNT_SOFT        0x0001
 #define MYNFS_MOUNT_INTR        0x0002
-#define MYNFS_MOUNT_POSIX       0x0004
-#define MYNFS_MOUNT_NOCTO       0x0008
-#define MYNFS_MOUNT_NOAC        0x0010
-#define MYNFS_MOUNT_NONLM       0x0020
-#define MYNFS_MOUNT_BROKEN_SUID 0x0040
-#define MYNFS_MOUNT_NOACL       0x8000
-#define MYNFS_MOUNT_VER3        0x0200
-#define MYNFS_MOUNT_KERBEROS    0x0400
-#define MYNFS_MOUNT_TCP         0x0800
+#define MYNFS_MOUNT_POSIX       0x0008
+#define MYNFS_MOUNT_NOCTO       0x0010
+#define MYNFS_MOUNT_NOAC        0x0020
+#define MYNFS_MOUNT_TCP         0x0040
+#define MYNFS_MOUNT_VER3        0x0080
+#define MYNFS_MOUNT_KERBEROS    0x0100
+#define MYNFS_MOUNT_NONLM       0x0200
+#define MYNFS_MOUNT_BROKEN_SUID 0x0400
+#define MYNFS_MOUNT_NOACL       0x0800
 #define MYNFS_MOUNT_FLAGMASK    0xFFFF
 
 static const char *progname = "mount.mynfs";
