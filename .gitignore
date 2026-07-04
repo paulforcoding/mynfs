@@ -18,5 +18,7 @@ modules.order
 *~
 .DS_Store
 
-# AI local config
+# AI / agent local files
 .claude/
+.aireports/
+AGENTS.md
