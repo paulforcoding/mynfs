@@ -1,0 +1,22 @@
+# Build artifacts
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+*.order
+*.symvers
+Module.symvers
+modules.order
+
+# Build directories
+.cache/
+
+# Editor / OS
+*.swp
+*.swo
+*~
+.DS_Store
+
+# AI local config
+.claude/
