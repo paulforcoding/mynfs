@@ -175,7 +175,7 @@ int nfs_mount(struct nfs_mount_request *info, int timeo, int retrans)
 	if (info->noresvport)
 		args.flags |= RPC_CLNT_CREATE_NONPRIVPORT;
 
-	nfs_init_timeout_values(&mnt_timeout, info->protocol, timeo, retrans);
+	mynfs_init_timeout_values(&mnt_timeout, info->protocol, timeo, retrans);
 	mnt_clnt = rpc_create(&args);
 	if (IS_ERR(mnt_clnt))
 		goto out_clnt_err;

@@ -39,7 +39,7 @@ static struct kobj_type nfs_kset_type = {
 	.child_ns_type = nfs_netns_object_child_ns_type,
 };
 
-int nfs_sysfs_init(void)
+int mynfs_sysfs_init(void)
 {
 	int ret;
 
@@ -66,7 +66,7 @@ int nfs_sysfs_init(void)
 	return 0;
 }
 
-void nfs_sysfs_exit(void)
+void mynfs_sysfs_exit(void)
 {
 	kset_unregister(nfs_kset);
 }
@@ -245,7 +245,7 @@ static void shutdown_nfs_client(struct nfs_client *clp)
 		}
 	}
 	rcu_read_unlock();
-	nfs_mark_client_ready(clp, -EIO);
+	mynfs_mark_client_ready(clp, -EIO);
 	shutdown_client(clp->cl_rpcclient);
 }
 
@@ -295,7 +295,7 @@ static struct kobj_attribute nfs_sysfs_attr_shutdown = __ATTR_RW(shutdown);
 
 #define RPC_CLIENT_NAME_SIZE 64
 
-void nfs_sysfs_link_rpc_client(struct nfs_server *server,
+void mynfs_sysfs_link_rpc_client(struct nfs_server *server,
 			struct rpc_clnt *clnt, const char *uniq)
 {
 	char name[RPC_CLIENT_NAME_SIZE];
@@ -311,7 +311,7 @@ void nfs_sysfs_link_rpc_client(struct nfs_server *server,
 		pr_warn("NFS: can't create link to %s in sysfs (%d)\n",
 			name, ret);
 }
-EXPORT_SYMBOL_GPL(nfs_sysfs_link_rpc_client);
+EXPORT_SYMBOL_GPL(mynfs_sysfs_link_rpc_client);
 
 static void nfs_sysfs_sb_release(struct kobject *kobj)
 {
@@ -330,7 +330,7 @@ static struct kobj_type nfs_sb_ktype = {
 	.child_ns_type = nfs_netns_object_child_ns_type,
 };
 
-void nfs_sysfs_add_server(struct nfs_server *server)
+void mynfs_sysfs_add_server(struct nfs_server *server)
 {
 	int ret;
 
@@ -347,7 +347,7 @@ void nfs_sysfs_add_server(struct nfs_server *server)
 		pr_warn("NFS: sysfs_create_file_ns for server-%d failed (%d)\n",
 			server->s_sysfs_id, ret);
 }
-EXPORT_SYMBOL_GPL(nfs_sysfs_add_server);
+EXPORT_SYMBOL_GPL(mynfs_sysfs_add_server);
 
 void nfs_sysfs_move_server_to_sb(struct super_block *s)
 {

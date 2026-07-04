@@ -213,7 +213,7 @@ void nfs_fscache_clear_inode(struct inode *inode)
  * Note that this may be invoked multiple times in parallel by parallel
  * nfs_open() functions.
  */
-void nfs_fscache_open_file(struct inode *inode, struct file *filp)
+void mynfs_fscache_open_file(struct inode *inode, struct file *filp)
 {
 	struct nfs_fscache_inode_auxdata auxdata;
 	struct fscache_cookie *cookie = netfs_i_cookie(netfs_inode(inode));
@@ -229,7 +229,7 @@ void nfs_fscache_open_file(struct inode *inode, struct file *filp)
 				   FSCACHE_INVAL_DIO_WRITE);
 	}
 }
-EXPORT_SYMBOL_GPL(nfs_fscache_open_file);
+EXPORT_SYMBOL_GPL(mynfs_fscache_open_file);
 
 void nfs_fscache_release_file(struct inode *inode, struct file *filp)
 {
@@ -313,7 +313,7 @@ static void nfs_netfs_issue_read(struct netfs_io_subrequest *sreq)
 	pgoff_t last = ((sreq->start + sreq->len -
 			 sreq->transferred - 1) >> PAGE_SHIFT);
 
-	nfs_pageio_init_read(&pgio, inode, false,
+	mynfs_pageio_init_read(&pgio, inode, false,
 			     &nfs_async_read_completion_ops);
 
 	netfs = nfs_netfs_alloc(sreq);

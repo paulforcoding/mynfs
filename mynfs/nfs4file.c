@@ -46,7 +46,7 @@ nfs4_file_open(struct inode *inode, struct file *filp)
 
 	dprintk("NFS: open file(%pd2)\n", dentry);
 
-	err = nfs_check_flags(openflags);
+	err = mynfs_check_flags(openflags);
 	if (err)
 		return err;
 
@@ -87,7 +87,7 @@ nfs4_file_open(struct inode *inode, struct file *filp)
 		goto out_drop;
 
 	nfs_file_set_open_context(filp, ctx);
-	nfs_fscache_open_file(inode, filp);
+	mynfs_fscache_open_file(inode, filp);
 	err = 0;
 	filp->f_mode |= FMODE_CAN_ODIRECT;
 
@@ -212,7 +212,7 @@ static loff_t nfs4_file_llseek(struct file *filep, loff_t offset, int whence)
 			return ret;
 		fallthrough;
 	default:
-		return nfs_file_llseek(filep, offset, whence);
+		return mynfs_file_llseek(filep, offset, whence);
 	}
 }
 
@@ -447,18 +447,18 @@ static int nfs4_setlease(struct file *file, long arg, struct file_lock **lease,
 }
 
 const struct file_operations nfs4_file_operations = {
-	.read_iter	= nfs_file_read,
-	.write_iter	= nfs_file_write,
-	.mmap		= nfs_file_mmap,
+	.read_iter	= mynfs_file_read,
+	.write_iter	= mynfs_file_write,
+	.mmap		= mynfs_file_mmap,
 	.open		= nfs4_file_open,
 	.flush		= nfs4_file_flush,
-	.release	= nfs_file_release,
-	.fsync		= nfs_file_fsync,
-	.lock		= nfs_lock,
-	.flock		= nfs_flock,
+	.release	= mynfs_file_release,
+	.fsync		= mynfs_file_fsync,
+	.lock		= mynfs_lock,
+	.flock		= mynfs_flock,
 	.splice_read	= generic_file_splice_read,
 	.splice_write	= iter_file_splice_write,
-	.check_flags	= nfs_check_flags,
+	.check_flags	= mynfs_check_flags,
 	.setlease	= nfs4_setlease,
 #ifdef CONFIG_NFS_V4_2
 	.copy_file_range = nfs4_copy_file_range,
@@ -466,6 +466,6 @@ const struct file_operations nfs4_file_operations = {
 	.fallocate	= nfs42_fallocate,
 	.remap_file_range = nfs42_remap_file_range,
 #else
-	.llseek		= nfs_file_llseek,
+	.llseek		= mynfs_file_llseek,
 #endif
 };

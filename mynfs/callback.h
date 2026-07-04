@@ -200,7 +200,7 @@ extern void nfs_callback_down(int minorversion, struct net *net);
 
 #define NFS4_MIN_NR_CALLBACK_THREADS 1
 
-extern unsigned int nfs_callback_set_tcpport;
-extern unsigned short nfs_callback_nr_threads;
+extern unsigned int mynfs_callback_set_tcpport;
+extern unsigned short mynfs_callback_nr_threads;
 
 #endif /* __LINUX_FS_NFS_CALLBACK_H */

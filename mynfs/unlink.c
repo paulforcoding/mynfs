@@ -70,7 +70,7 @@ static void nfs_async_unlink_release(void *calldata)
 	d_lookup_done(dentry);
 	nfs_free_unlinkdata(data);
 	dput(dentry);
-	nfs_sb_deactive(sb);
+	mynfs_sb_deactive(sb);
 }
 
 static void nfs_unlink_prepare(struct rpc_task *task, void *calldata)
@@ -97,7 +97,7 @@ static void nfs_do_call_unlink(struct inode *inode, struct nfs_unlinkdata *data)
 		.rpc_message = &msg,
 		.callback_ops = &nfs_unlink_ops,
 		.callback_data = data,
-		.workqueue = nfsiod_workqueue,
+		.workqueue = mynfs_iod_workqueue,
 		.flags = RPC_TASK_ASYNC | RPC_TASK_CRED_NOREF,
 	};
 	struct rpc_task *task;
@@ -106,7 +106,7 @@ static void nfs_do_call_unlink(struct inode *inode, struct nfs_unlinkdata *data)
 	if (nfs_server_capable(inode, NFS_CAP_MOVEABLE))
 		task_setup_data.flags |= RPC_TASK_MOVEABLE;
 
-	nfs_sb_active(dir->i_sb);
+	mynfs_sb_active(dir->i_sb);
 	data->args.fh = NFS_FH(dir);
 	nfs_fattr_init(data->res.dir_attr);
 
@@ -309,7 +309,7 @@ static void nfs_async_rename_release(void *calldata)
 	dput(data->new_dentry);
 	iput(data->old_dir);
 	iput(data->new_dir);
-	nfs_sb_deactive(sb);
+	mynfs_sb_deactive(sb);
 	put_cred(data->cred);
 	kfree(data);
 }
@@ -346,7 +346,7 @@ nfs_async_rename(struct inode *old_dir, struct inode *new_dir,
 	struct rpc_task_setup task_setup_data = {
 		.rpc_message = &msg,
 		.callback_ops = &nfs_rename_ops,
-		.workqueue = nfsiod_workqueue,
+		.workqueue = mynfs_iod_workqueue,
 		.rpc_client = NFS_CLIENT(old_dir),
 		.flags = RPC_TASK_ASYNC | RPC_TASK_CRED_NOREF,
 	};
@@ -388,7 +388,7 @@ nfs_async_rename(struct inode *old_dir, struct inode *new_dir,
 	data->res.old_fattr = &data->old_fattr;
 	data->res.new_fattr = &data->new_fattr;
 
-	nfs_sb_active(old_dir->i_sb);
+	mynfs_sb_active(old_dir->i_sb);
 
 	NFS_PROTO(data->old_dir)->rename_setup(&msg, old_dentry, new_dentry);
 
@@ -512,7 +512,7 @@ nfs_sillyrename(struct inode *dir, struct dentry *dentry)
 		nfs_set_verifier(dentry, nfs_save_change_attribute(dir));
 		spin_lock(&inode->i_lock);
 		NFS_I(inode)->attr_gencount = nfs_inc_attr_generation_counter();
-		nfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE |
+		mynfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE |
 						     NFS_INO_INVALID_CTIME |
 						     NFS_INO_REVAL_FORCED);
 		spin_unlock(&inode->i_lock);

@@ -268,14 +268,14 @@ struct nfs4_mig_recovery_ops {
 	int (*fsid_present)(struct inode *, const struct cred *);
 };
 
-extern const struct dentry_operations nfs4_dentry_operations;
+extern const struct dentry_operations mynfs4_dentry_operations;
 
 /* dir.c */
-int nfs_atomic_open(struct inode *, struct dentry *, struct file *,
+int mynfs_atomic_open(struct inode *, struct dentry *, struct file *,
 		    unsigned, umode_t);
 
 /* fs_context.c */
-extern struct file_system_type nfs4_fs_type;
+extern struct file_system_type mynfs4_fs_type;
 
 /* nfs4namespace.c */
 struct rpc_clnt *nfs4_negotiate_security(struct rpc_clnt *, struct inode *,
@@ -316,7 +316,7 @@ extern struct rpc_clnt *nfs4_proc_lookup_mountpoint(struct inode *,
 						    struct nfs_fattr *);
 extern int nfs4_proc_secinfo(struct inode *, const struct qstr *, struct nfs4_secinfo_flavors *);
 extern const struct xattr_handler * const nfs4_xattr_handlers[];
-extern int nfs4_set_rw_stateid(nfs4_stateid *stateid,
+extern int mynfs4_set_rw_stateid(nfs4_stateid *stateid,
 		const struct nfs_open_context *ctx,
 		const struct nfs_lock_context *l_ctx,
 		fmode_t fmode);
@@ -340,7 +340,7 @@ extern int nfs4_buf_to_pages_noslab(const void *buf, size_t buflen,
 				    struct page **pages);
 
 #if defined(CONFIG_NFS_V4_1)
-extern int nfs41_sequence_done(struct rpc_task *, struct nfs4_sequence_res *);
+extern int mynfs41_sequence_done(struct rpc_task *, struct nfs4_sequence_res *);
 extern int nfs4_proc_create_session(struct nfs_client *, const struct cred *);
 extern int nfs4_proc_destroy_session(struct nfs4_session *, const struct cred *);
 extern int nfs4_proc_layoutcommit(struct nfs4_layoutcommit_data *data,
@@ -479,12 +479,12 @@ int nfs40_discover_server_trunking(struct nfs_client *clp,
 #if defined(CONFIG_NFS_V4_1)
 int nfs41_discover_server_trunking(struct nfs_client *clp,
 			struct nfs_client **, const struct cred *);
-extern void nfs4_schedule_session_recovery(struct nfs4_session *, int);
+extern void mynfs4_schedule_session_recovery(struct nfs4_session *, int);
 extern void nfs41_notify_server(struct nfs_client *);
 bool nfs4_check_serverowner_major_id(struct nfs41_server_owner *o1,
 			struct nfs41_server_owner *o2);
 #else
-static inline void nfs4_schedule_session_recovery(struct nfs4_session *session, int err)
+static inline void mynfs4_schedule_session_recovery(struct nfs4_session *session, int err)
 {
 }
 #endif /* CONFIG_NFS_V4_1 */
@@ -501,14 +501,14 @@ extern void nfs4_state_set_mode_locked(struct nfs4_state *, fmode_t);
 extern void nfs_inode_find_state_and_recover(struct inode *inode,
 		const nfs4_stateid *stateid);
 extern int nfs4_state_mark_reclaim_nograce(struct nfs_client *, struct nfs4_state *);
-extern void nfs4_schedule_lease_recovery(struct nfs_client *);
+extern void mynfs4_schedule_lease_recovery(struct nfs_client *);
 extern int nfs4_wait_clnt_recover(struct nfs_client *clp);
 extern int nfs4_client_recover_expired_lease(struct nfs_client *clp);
 extern void nfs4_schedule_state_manager(struct nfs_client *);
 extern void nfs4_schedule_path_down_recovery(struct nfs_client *clp);
-extern int nfs4_schedule_stateid_recovery(const struct nfs_server *, struct nfs4_state *);
-extern int nfs4_schedule_migration_recovery(const struct nfs_server *);
-extern void nfs4_schedule_lease_moved_recovery(struct nfs_client *);
+extern int mynfs4_schedule_stateid_recovery(const struct nfs_server *, struct nfs4_state *);
+extern int mynfs4_schedule_migration_recovery(const struct nfs_server *);
+extern void mynfs4_schedule_lease_moved_recovery(struct nfs_client *);
 extern void nfs41_handle_sequence_flag_errors(struct nfs_client *clp, u32 flags, bool);
 extern void nfs41_handle_server_scope(struct nfs_client *,
 				      struct nfs41_server_scope **);
@@ -526,11 +526,11 @@ extern void nfs_increment_open_seqid(int status, struct nfs_seqid *seqid);
 extern void nfs_increment_lock_seqid(int status, struct nfs_seqid *seqid);
 extern void nfs_release_seqid(struct nfs_seqid *seqid);
 extern void nfs_free_seqid(struct nfs_seqid *seqid);
-extern int nfs4_setup_sequence(struct nfs_client *client,
+extern int mynfs4_setup_sequence(struct nfs_client *client,
 				struct nfs4_sequence_args *args,
 				struct nfs4_sequence_res *res,
 				struct rpc_task *task);
-extern int nfs4_sequence_done(struct rpc_task *task,
+extern int mynfs4_sequence_done(struct rpc_task *task,
 			      struct nfs4_sequence_res *res);
 
 extern void nfs4_free_lock_state(struct nfs_server *server, struct nfs4_lock_state *lsp);
@@ -540,31 +540,31 @@ extern const nfs4_stateid invalid_stateid;
 
 /* nfs4super.c */
 struct nfs_mount_info;
-extern struct nfs_subversion nfs_v4;
-extern bool nfs4_disable_idmapping;
-extern unsigned short max_session_slots;
-extern unsigned short max_session_cb_slots;
-extern unsigned short send_implementation_id;
-extern bool recover_lost_locks;
-extern short nfs_delay_retrans;
+extern struct nfs_subversion mynfs_v4;
+extern bool mynfs4_disable_idmapping;
+extern unsigned short mynfs_max_session_slots;
+extern unsigned short mynfs_max_session_cb_slots;
+extern unsigned short mynfs_send_implementation_id;
+extern bool mynfs_recover_lost_locks;
+extern short mynfs_delay_retrans;
 
 #define NFS4_CLIENT_ID_UNIQ_LEN		(64)
-extern char nfs4_client_id_uniquifier[NFS4_CLIENT_ID_UNIQ_LEN];
+extern char mynfs4_client_id_uniquifier[NFS4_CLIENT_ID_UNIQ_LEN];
 
 extern int nfs4_try_get_tree(struct fs_context *);
 extern int nfs4_get_referral_tree(struct fs_context *);
 
 /* nfs4sysctl.c */
 #ifdef CONFIG_SYSCTL
-int nfs4_register_sysctl(void);
-void nfs4_unregister_sysctl(void);
+int mynfs4_register_sysctl(void);
+void mynfs4_unregister_sysctl(void);
 #else
-static inline int nfs4_register_sysctl(void)
+static inline int mynfs4_register_sysctl(void)
 {
 	return 0;
 }
 
-static inline void nfs4_unregister_sysctl(void)
+static inline void mynfs4_unregister_sysctl(void)
 {
 }
 #endif
@@ -644,8 +644,8 @@ static inline bool nfs4_state_match_open_stateid_other(const struct nfs4_state *
 
 /* nfs42xattr.c */
 #ifdef CONFIG_NFS_V4_2
-extern int __init nfs4_xattr_cache_init(void);
-extern void nfs4_xattr_cache_exit(void);
+extern int __init mynfs4_xattr_cache_init(void);
+extern void mynfs4_xattr_cache_exit(void);
 extern void nfs4_xattr_cache_add(struct inode *inode, const char *name,
 				 const char *buf, struct page **pages,
 				 ssize_t buflen);

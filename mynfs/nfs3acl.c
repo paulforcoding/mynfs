@@ -219,7 +219,7 @@ static int __nfs3_proc_setacls(struct inode *inode, struct posix_acl *acl,
 	msg.rpc_resp = fattr;
 	status = rpc_call_sync(server->client_acl, &msg, 0);
 	nfs_access_zap_cache(inode);
-	nfs_zap_acl_cache(inode);
+	mynfs_zap_acl_cache(inode);
 	dprintk("NFS reply setacl: %d\n", status);
 
 	switch (status) {

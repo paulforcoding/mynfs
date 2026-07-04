@@ -938,11 +938,11 @@ const u32 nfs41_maxread_overhead = ((RPC_MAX_HEADER_WITH_AUTH +
 				     decode_putfh_maxsz) *
 				    XDR_UNIT);
 
-const u32 nfs41_maxgetdevinfo_overhead = ((RPC_MAX_REPHEADER_WITH_AUTH +
+const u32 mynfs41_maxgetdevinfo_overhead = ((RPC_MAX_REPHEADER_WITH_AUTH +
 					   compound_decode_hdr_maxsz +
 					   decode_sequence_maxsz) *
 					  XDR_UNIT);
-EXPORT_SYMBOL_GPL(nfs41_maxgetdevinfo_overhead);
+EXPORT_SYMBOL_GPL(mynfs41_maxgetdevinfo_overhead);
 #endif /* CONFIG_NFS_V4_1 */
 
 static const umode_t nfs_type2fmt[] = {
@@ -1875,7 +1875,7 @@ static void encode_exchange_id(struct xdr_stream *xdr,
 		break;
 	}
 
-	if (send_implementation_id &&
+	if (mynfs_send_implementation_id &&
 	    sizeof(CONFIG_NFS_V4_1_IMPLEMENTATION_ID_DOMAIN) > 1 &&
 	    sizeof(CONFIG_NFS_V4_1_IMPLEMENTATION_ID_DOMAIN)
 		<= sizeof(impl_name) + 1)
@@ -1905,7 +1905,7 @@ static void encode_create_session(struct xdr_stream *xdr,
 	__be32 *p;
 	struct nfs_client *clp = args->client;
 	struct rpc_clnt *clnt = clp->cl_rpcclient;
-	struct nfs_net *nn = net_generic(clp->cl_net, nfs_net_id);
+	struct nfs_net *nn = net_generic(clp->cl_net, mynfs_net_id);
 	u32 max_resp_sz_cached;
 
 	/*

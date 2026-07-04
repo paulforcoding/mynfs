@@ -17,15 +17,15 @@ struct nfs_netns_client {
 
 extern struct kobject *nfs_net_kobj;
 
-extern int nfs_sysfs_init(void);
-extern void nfs_sysfs_exit(void);
+extern int mynfs_sysfs_init(void);
+extern void mynfs_sysfs_exit(void);
 
 void nfs_netns_sysfs_setup(struct nfs_net *netns, struct net *net);
 void nfs_netns_sysfs_destroy(struct nfs_net *netns);
 
-void nfs_sysfs_link_rpc_client(struct nfs_server *server,
+void mynfs_sysfs_link_rpc_client(struct nfs_server *server,
 			struct rpc_clnt *clnt, const char *sysfs_prefix);
-void nfs_sysfs_add_server(struct nfs_server *s);
+void mynfs_sysfs_add_server(struct nfs_server *s);
 void nfs_sysfs_move_server_to_sb(struct super_block *s);
 void nfs_sysfs_move_sb_to_server(struct nfs_server *s);
 void nfs_sysfs_remove_server(struct nfs_server *s);

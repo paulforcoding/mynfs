@@ -34,7 +34,7 @@ static void nfs_init_server_aclclient(struct nfs_server *server)
 	if (IS_ERR(server->client_acl))
 		goto out_noacl;
 
-	nfs_sysfs_link_rpc_client(server, server->client_acl, NULL);
+	mynfs_sysfs_link_rpc_client(server, server->client_acl, NULL);
 
 	/* No errors! Assume that Sun nfsacls are supported */
 	server->caps |= NFS_CAP_ACLS;
@@ -53,7 +53,7 @@ static inline void nfs_init_server_aclclient(struct nfs_server *server)
 
 struct nfs_server *nfs3_create_server(struct fs_context *fc)
 {
-	struct nfs_server *server = nfs_create_server(fc);
+	struct nfs_server *server = mynfs_create_server(fc);
 
 	/* Create a client RPC handle for the NFS v3 ACL management interface */
 	if (!IS_ERR(server))
@@ -66,7 +66,7 @@ struct nfs_server *nfs3_clone_server(struct nfs_server *source,
 				     struct nfs_fattr *fattr,
 				     rpc_authflavor_t flavor)
 {
-	struct nfs_server *server = nfs_clone_server(source, fh, fattr, flavor);
+	struct nfs_server *server = mynfs_clone_server(source, fh, fattr, flavor);
 	if (!IS_ERR(server) && !IS_ERR(source->client_acl))
 		nfs_init_server_aclclient(server);
 	return server;
@@ -82,7 +82,7 @@ struct nfs_server *nfs3_clone_server(struct nfs_server *source,
  * low timeout interval so that if a connection is lost, we retry through
  * the MDS.
  */
-struct nfs_client *nfs3_set_ds_client(struct nfs_server *mds_srv,
+struct nfs_client *mynfs3_set_ds_client(struct nfs_server *mds_srv,
 		const struct sockaddr_storage *ds_addr, int ds_addrlen,
 		int ds_proto, unsigned int ds_timeo, unsigned int ds_retrans)
 {
@@ -94,7 +94,7 @@ struct nfs_client *nfs3_set_ds_client(struct nfs_server *mds_srv,
 		.addrlen = ds_addrlen,
 		.nodename = mds_clp->cl_rpcclient->cl_nodename,
 		.ip_addr = mds_clp->cl_ipaddr,
-		.nfs_mod = &nfs_v3,
+		.nfs_mod = &mynfs_v3,
 		.proto = ds_proto,
 		.net = mds_clp->cl_net,
 		.timeparms = &ds_timeout,
@@ -134,9 +134,9 @@ struct nfs_client *nfs3_set_ds_client(struct nfs_server *mds_srv,
 	__set_bit(NFS_CS_DS, &cl_init.init_flags);
 
 	/* Use the MDS nfs_client cl_ipaddr. */
-	nfs_init_timeout_values(&ds_timeout, ds_proto, ds_timeo, ds_retrans);
-	clp = nfs_get_client(&cl_init);
+	mynfs_init_timeout_values(&ds_timeout, ds_proto, ds_timeo, ds_retrans);
+	clp = mynfs_get_client(&cl_init);
 
 	return clp;
 }
-EXPORT_SYMBOL_GPL(nfs3_set_ds_client);
+EXPORT_SYMBOL_GPL(mynfs3_set_ds_client);

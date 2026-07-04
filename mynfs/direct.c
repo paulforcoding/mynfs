@@ -218,12 +218,12 @@ static void nfs_direct_req_release(struct nfs_direct_req *dreq)
 	kref_put(&dreq->kref, nfs_direct_req_free);
 }
 
-ssize_t nfs_dreq_bytes_left(struct nfs_direct_req *dreq, loff_t offset)
+ssize_t mynfs_dreq_bytes_left(struct nfs_direct_req *dreq, loff_t offset)
 {
 	loff_t start = offset - dreq->io_start;
 	return dreq->max_count - start;
 }
-EXPORT_SYMBOL_GPL(nfs_dreq_bytes_left);
+EXPORT_SYMBOL_GPL(mynfs_dreq_bytes_left);
 
 /*
  * Collects and returns the final error value/byte-count.
@@ -346,7 +346,7 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
 	size_t requested_bytes = 0;
 	size_t rsize = max_t(size_t, NFS_SERVER(inode)->rsize, PAGE_SIZE);
 
-	nfs_pageio_init_read(&desc, dreq->inode, false,
+	mynfs_pageio_init_read(&desc, dreq->inode, false,
 			     &nfs_direct_read_completion_ops);
 	get_dreq(dreq);
 	desc.pg_dreq = dreq;
@@ -548,7 +548,7 @@ nfs_direct_write_scan_commit_list(struct inode *inode,
 {
 	mutex_lock(&NFS_I(cinfo->inode)->commit_mutex);
 	pnfs_recover_commit_reqs(list, cinfo);
-	nfs_scan_commit_list(&cinfo->mds->list, list, cinfo, 0);
+	mynfs_scan_commit_list(&cinfo->mds->list, list, cinfo, 0);
 	mutex_unlock(&NFS_I(cinfo->inode)->commit_mutex);
 }
 
@@ -567,7 +567,7 @@ static void nfs_direct_write_reschedule(struct nfs_direct_req *dreq)
 	nfs_clear_pnfs_ds_commit_verifiers(&dreq->ds_cinfo);
 	get_dreq(dreq);
 
-	nfs_pageio_init_write(&desc, dreq->inode, FLUSH_STABLE, false,
+	mynfs_pageio_init_write(&desc, dreq->inode, FLUSH_STABLE, false,
 			      &nfs_direct_write_completion_ops);
 	desc.pg_dreq = dreq;
 
@@ -741,7 +741,7 @@ static void nfs_direct_write_schedule_work(struct work_struct *work)
 static void nfs_direct_write_complete(struct nfs_direct_req *dreq)
 {
 	trace_nfs_direct_write_complete(dreq);
-	queue_work(nfsiod_workqueue, &dreq->work); /* Calls nfs_direct_write_schedule_work */
+	queue_work(mynfs_iod_workqueue, &dreq->work); /* Calls nfs_direct_write_schedule_work */
 }
 
 static void nfs_direct_write_completion(struct nfs_pgio_header *hdr)
@@ -865,7 +865,7 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
 
 	trace_nfs_direct_write_schedule_iovec(dreq);
 
-	nfs_pageio_init_write(&desc, inode, ioflags, false,
+	mynfs_pageio_init_write(&desc, inode, ioflags, false,
 			      &nfs_direct_write_completion_ops);
 	desc.pg_dreq = dreq;
 	get_dreq(dreq);
@@ -1063,10 +1063,10 @@ out:
 }
 
 /**
- * nfs_init_directcache - create a slab cache for nfs_direct_req structures
+ * mynfs_init_directcache - create a slab cache for nfs_direct_req structures
  *
  */
-int __init nfs_init_directcache(void)
+int __init mynfs_init_directcache(void)
 {
 	nfs_direct_cachep = kmem_cache_create("nfs_direct_cache",
 						sizeof(struct nfs_direct_req),
@@ -1080,10 +1080,10 @@ int __init nfs_init_directcache(void)
 }
 
 /**
- * nfs_destroy_directcache - destroy the slab cache for nfs_direct_req structures
+ * mynfs_destroy_directcache - destroy the slab cache for nfs_direct_req structures
  *
  */
-void nfs_destroy_directcache(void)
+void mynfs_destroy_directcache(void)
 {
 	kmem_cache_destroy(nfs_direct_cachep);
 }

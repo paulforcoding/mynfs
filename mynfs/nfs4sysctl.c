@@ -20,7 +20,7 @@ static struct ctl_table_header *nfs4_callback_sysctl_table;
 static struct ctl_table nfs4_cb_sysctls[] = {
 	{
 		.procname = "nfs_callback_tcpport",
-		.data = &nfs_callback_set_tcpport,
+		.data = &mynfs_callback_set_tcpport,
 		.maxlen = sizeof(int),
 		.mode = 0644,
 		.proc_handler = proc_dointvec_minmax,
@@ -29,7 +29,7 @@ static struct ctl_table nfs4_cb_sysctls[] = {
 	},
 	{
 		.procname = "idmap_cache_timeout",
-		.data = &nfs_idmap_cache_timeout,
+		.data = &mynfs_idmap_cache_timeout,
 		.maxlen = sizeof(int),
 		.mode = 0644,
 		.proc_handler = proc_dointvec,
@@ -37,7 +37,7 @@ static struct ctl_table nfs4_cb_sysctls[] = {
 	{ }
 };
 
-int nfs4_register_sysctl(void)
+int mynfs4_register_sysctl(void)
 {
 	nfs4_callback_sysctl_table = register_sysctl("fs/nfs",
 						     nfs4_cb_sysctls);
@@ -46,7 +46,7 @@ int nfs4_register_sysctl(void)
 	return 0;
 }
 
-void nfs4_unregister_sysctl(void)
+void mynfs4_unregister_sysctl(void)
 {
 	unregister_sysctl_table(nfs4_callback_sysctl_table);
 	nfs4_callback_sysctl_table = NULL;

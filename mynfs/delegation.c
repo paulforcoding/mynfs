@@ -514,7 +514,7 @@ add_new:
 	 */
 	spin_lock(&inode->i_lock);
 	if (NFS_I(inode)->cache_validity & NFS_INO_INVALID_CHANGE)
-		nfs_set_cache_invalid(inode,
+		mynfs_set_cache_invalid(inode,
 			NFS_INO_INVALID_ATIME | NFS_INO_INVALID_CTIME |
 			NFS_INO_INVALID_MTIME | NFS_INO_INVALID_SIZE |
 			NFS_INO_INVALID_BLOCKS | NFS_INO_INVALID_NLINK |
@@ -534,7 +534,7 @@ add_new:
 	/* If we hold writebacks and have delegated mtime then update */
 	if (deleg_type == NFS4_OPEN_DELEGATE_WRITE_ATTRS_DELEG &&
 	    nfs_have_writebacks(inode))
-		nfs_update_delegated_mtime(inode);
+		mynfs_update_delegated_mtime(inode);
 out:
 	spin_unlock(&clp->cl_lock);
 	if (delegation != NULL)
@@ -724,7 +724,7 @@ out:
  */
 int nfs_client_return_marked_delegations(struct nfs_client *clp)
 {
-	int err = nfs_client_for_each_server(
+	int err = mynfs_client_for_each_server(
 		clp, nfs_server_return_marked_delegations, NULL);
 	if (err)
 		return err;
@@ -1063,14 +1063,14 @@ out_rcu_unlock:
 }
 
 /**
- * nfs_remove_bad_delegation - handle delegations that are unusable
+ * mynfs_remove_bad_delegation - handle delegations that are unusable
  * @inode: inode to process
  * @stateid: the delegation's stateid
  *
  * If the server ACK-ed our FREE_STATEID then clean
  * up the delegation, else mark and keep the revoked state.
  */
-void nfs_remove_bad_delegation(struct inode *inode,
+void mynfs_remove_bad_delegation(struct inode *inode,
 		const nfs4_stateid *stateid)
 {
 	if (stateid && stateid->type == NFS4_FREED_STATEID_TYPE)
@@ -1078,7 +1078,7 @@ void nfs_remove_bad_delegation(struct inode *inode,
 	else
 		nfs_revoke_delegation(inode, stateid);
 }
-EXPORT_SYMBOL_GPL(nfs_remove_bad_delegation);
+EXPORT_SYMBOL_GPL(mynfs_remove_bad_delegation);
 
 /**
  * nfs_expire_unused_delegation_types
@@ -1167,7 +1167,7 @@ nfs_delegation_find_inode_server(struct nfs_server *server,
 		if (delegation->inode != NULL &&
 		    !test_bit(NFS_DELEGATION_REVOKED, &delegation->flags) &&
 		    nfs_compare_fh(fhandle, &NFS_I(delegation->inode)->fh) == 0) {
-			if (nfs_sb_active(server->super)) {
+			if (mynfs_sb_active(server->super)) {
 				freeme = server->super;
 				res = igrab(delegation->inode);
 			}
@@ -1176,7 +1176,7 @@ nfs_delegation_find_inode_server(struct nfs_server *server,
 				return res;
 			if (freeme) {
 				rcu_read_unlock();
-				nfs_sb_deactive(freeme);
+				mynfs_sb_deactive(freeme);
 				rcu_read_lock();
 			}
 			return ERR_PTR(-EAGAIN);
@@ -1284,7 +1284,7 @@ restart:
  */
 void nfs_delegation_reap_unclaimed(struct nfs_client *clp)
 {
-	nfs_client_for_each_server(clp, nfs_server_reap_unclaimed_delegations,
+	mynfs_client_for_each_server(clp, nfs_server_reap_unclaimed_delegations,
 			NULL);
 }
 
@@ -1369,7 +1369,7 @@ nfs_delegation_test_free_expired(struct inode *inode,
 		return;
 	status = ops->test_and_free_expired(server, stateid, cred);
 	if (status == -NFS4ERR_EXPIRED || status == -NFS4ERR_BAD_STATEID)
-		nfs_remove_bad_delegation(inode, stateid);
+		mynfs_remove_bad_delegation(inode, stateid);
 }
 
 static int nfs_server_reap_expired_delegations(struct nfs_server *server,
@@ -1434,7 +1434,7 @@ restart:
  */
 void nfs_reap_expired_delegations(struct nfs_client *clp)
 {
-	nfs_client_for_each_server(clp, nfs_server_reap_expired_delegations,
+	mynfs_client_for_each_server(clp, nfs_server_reap_expired_delegations,
 			NULL);
 }
 

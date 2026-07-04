@@ -1014,7 +1014,7 @@ static void nfs4_xattr_shrinker_destroy(struct shrinker *shrinker,
 	list_lru_destroy(lru);
 }
 
-int __init nfs4_xattr_cache_init(void)
+int __init mynfs4_xattr_cache_init(void)
 {
 	int ret = 0;
 
@@ -1054,7 +1054,7 @@ out1:
 	return ret;
 }
 
-void nfs4_xattr_cache_exit(void)
+void mynfs4_xattr_cache_exit(void)
 {
 	nfs4_xattr_shrinker_destroy(&nfs4_xattr_large_entry_shrinker,
 				    &nfs4_xattr_large_entry_lru);

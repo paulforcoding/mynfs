@@ -348,7 +348,7 @@ ssize_t nfs_dns_resolve_name(struct net *net, char *name,
 	};
 	struct nfs_dns_ent *item = NULL;
 	ssize_t ret;
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 
 	ret = do_cache_lookup_wait(nn->nfs_dns_resolve, &key, &item);
 	if (ret == 0) {
@@ -382,7 +382,7 @@ static struct cache_detail nfs_dns_resolve_template = {
 int nfs_dns_resolver_cache_init(struct net *net)
 {
 	int err;
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 
 	nn->nfs_dns_resolve = cache_create_net(&nfs_dns_resolve_template, net);
 	if (IS_ERR(nn->nfs_dns_resolve))
@@ -400,7 +400,7 @@ err_reg:
 
 void nfs_dns_resolver_cache_destroy(struct net *net)
 {
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 
 	nfs_cache_unregister_net(net, nn->nfs_dns_resolve);
 	cache_destroy_net(nn->nfs_dns_resolve, net);
@@ -426,7 +426,7 @@ static int rpc_pipefs_event(struct notifier_block *nb, unsigned long event,
 {
 	struct super_block *sb = ptr;
 	struct net *net = sb->s_fs_info;
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 	struct cache_detail *cd = nn->nfs_dns_resolve;
 	int ret = 0;
 
@@ -455,7 +455,7 @@ static struct notifier_block nfs_dns_resolver_block = {
 	.notifier_call	= rpc_pipefs_event,
 };
 
-int nfs_dns_resolver_init(void)
+int mynfs_dns_resolver_init(void)
 {
 	int err;
 
@@ -472,7 +472,7 @@ out:
 	return err;
 }
 
-void nfs_dns_resolver_destroy(void)
+void mynfs_dns_resolver_destroy(void)
 {
 	rpc_pipefs_notifier_unregister(&nfs_dns_resolver_block);
 	unregister_pernet_subsys(&nfs4_dns_resolver_ops);

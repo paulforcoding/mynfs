@@ -62,7 +62,7 @@ static int nfs_return_empty_folio(struct folio *folio)
 	return 0;
 }
 
-void nfs_pageio_init_read(struct nfs_pageio_descriptor *pgio,
+void mynfs_pageio_init_read(struct nfs_pageio_descriptor *pgio,
 			      struct inode *inode, bool force_mds,
 			      const struct nfs_pgio_completion_ops *compl_ops)
 {
@@ -76,7 +76,7 @@ void nfs_pageio_init_read(struct nfs_pageio_descriptor *pgio,
 	nfs_pageio_init(pgio, inode, pg_ops, compl_ops, &nfs_rw_read_ops,
 			server->rsize, 0);
 }
-EXPORT_SYMBOL_GPL(nfs_pageio_init_read);
+EXPORT_SYMBOL_GPL(mynfs_pageio_init_read);
 
 void nfs_pageio_complete_read(struct nfs_pageio_descriptor *pgio)
 {
@@ -95,7 +95,7 @@ void nfs_pageio_complete_read(struct nfs_pageio_descriptor *pgio)
 }
 
 
-void nfs_pageio_reset_read_mds(struct nfs_pageio_descriptor *pgio)
+void mynfs_pageio_reset_read_mds(struct nfs_pageio_descriptor *pgio)
 {
 	struct nfs_pgio_mirror *mirror;
 
@@ -110,15 +110,15 @@ void nfs_pageio_reset_read_mds(struct nfs_pageio_descriptor *pgio)
 	mirror = &pgio->pg_mirrors[0];
 	mirror->pg_bsize = NFS_SERVER(pgio->pg_inode)->rsize;
 }
-EXPORT_SYMBOL_GPL(nfs_pageio_reset_read_mds);
+EXPORT_SYMBOL_GPL(mynfs_pageio_reset_read_mds);
 
-bool nfs_read_alloc_scratch(struct nfs_pgio_header *hdr, size_t size)
+bool mynfs_read_alloc_scratch(struct nfs_pgio_header *hdr, size_t size)
 {
 	WARN_ON(hdr->res.scratch != NULL);
 	hdr->res.scratch = kmalloc(size, GFP_KERNEL);
 	return hdr->res.scratch != NULL;
 }
-EXPORT_SYMBOL_GPL(nfs_read_alloc_scratch);
+EXPORT_SYMBOL_GPL(mynfs_read_alloc_scratch);
 
 static void nfs_readpage_release(struct nfs_page *req, int error)
 {
@@ -338,7 +338,7 @@ static int nfs_do_read_folio(struct file *file, struct folio *folio)
 	ctx = get_nfs_open_context(nfs_file_open_context(file));
 
 	xchg(&ctx->error, 0);
-	nfs_pageio_init_read(&pgio, inode, false,
+	mynfs_pageio_init_read(&pgio, inode, false,
 			     &nfs_async_read_completion_ops);
 
 	ret = nfs_read_add_folio(&pgio, ctx, folio);
@@ -436,7 +436,7 @@ void nfs_readahead(struct readahead_control *ractl)
 	} else
 		ctx = get_nfs_open_context(nfs_file_open_context(file));
 
-	nfs_pageio_init_read(&pgio, inode, false,
+	mynfs_pageio_init_read(&pgio, inode, false,
 			     &nfs_async_read_completion_ops);
 
 	while ((folio = readahead_folio(ractl)) != NULL) {
@@ -453,7 +453,7 @@ out:
 	trace_nfs_aop_readahead_done(inode, nr_pages, ret);
 }
 
-int __init nfs_init_readpagecache(void)
+int __init mynfs_init_readpagecache(void)
 {
 	nfs_rdata_cachep = kmem_cache_create("nfs_read_data",
 					     sizeof(struct nfs_pgio_header),
@@ -465,7 +465,7 @@ int __init nfs_init_readpagecache(void)
 	return 0;
 }
 
-void nfs_destroy_readpagecache(void)
+void mynfs_destroy_readpagecache(void)
 {
 	kmem_cache_destroy(nfs_rdata_cachep);
 }

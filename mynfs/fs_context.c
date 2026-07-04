@@ -1396,11 +1396,11 @@ out_no_address:
 static int nfs_fs_context_parse_monolithic(struct fs_context *fc,
 					   void *data)
 {
-	if (fc->fs_type == &nfs_fs_type)
+	if (fc->fs_type == &mynfs_fs_type)
 		return nfs23_parse_monolithic(fc, data);
 
 #if IS_ENABLED(CONFIG_NFS_V4)
-	if (fc->fs_type == &nfs4_fs_type)
+	if (fc->fs_type == &mynfs4_fs_type)
 		return nfs4_parse_monolithic(fc, data);
 #endif
 
@@ -1574,7 +1574,7 @@ static void nfs_fs_context_free(struct fs_context *fc)
 
 	if (ctx) {
 		if (ctx->server)
-			nfs_free_server(ctx->server);
+			mynfs_free_server(ctx->server);
 		if (ctx->nfs_mod)
 			put_nfs_version(ctx->nfs_mod);
 		kfree(ctx->client_address);
@@ -1594,7 +1594,7 @@ static const struct fs_context_operations nfs_fs_context_ops = {
 	.parse_param		= nfs_fs_context_parse_param,
 	.parse_monolithic	= nfs_fs_context_parse_monolithic,
 	.get_tree		= nfs_get_tree,
-	.reconfigure		= nfs_reconfigure,
+	.reconfigure		= mynfs_reconfigure,
 };
 
 /*
@@ -1674,27 +1674,27 @@ static int nfs_init_fs_context(struct fs_context *fc)
 	return 0;
 }
 
-struct file_system_type nfs_fs_type = {
+struct file_system_type mynfs_fs_type = {
 	.owner			= THIS_MODULE,
-	.name			= "nfs",
+	.name			= "mynfs",
 	.init_fs_context	= nfs_init_fs_context,
 	.parameters		= nfs_fs_parameters,
-	.kill_sb		= nfs_kill_super,
+	.kill_sb		= mynfs_kill_super,
 	.fs_flags		= FS_RENAME_DOES_D_MOVE|FS_BINARY_MOUNTDATA,
 };
-MODULE_ALIAS_FS("nfs");
-EXPORT_SYMBOL_GPL(nfs_fs_type);
+MODULE_ALIAS_FS("mynfs");
+EXPORT_SYMBOL_GPL(mynfs_fs_type);
 
 #if IS_ENABLED(CONFIG_NFS_V4)
-struct file_system_type nfs4_fs_type = {
+struct file_system_type mynfs4_fs_type = {
 	.owner			= THIS_MODULE,
-	.name			= "nfs4",
+	.name			= "mynfs4",
 	.init_fs_context	= nfs_init_fs_context,
 	.parameters		= nfs_fs_parameters,
-	.kill_sb		= nfs_kill_super,
+	.kill_sb		= mynfs_kill_super,
 	.fs_flags		= FS_RENAME_DOES_D_MOVE|FS_BINARY_MOUNTDATA,
 };
-MODULE_ALIAS_FS("nfs4");
-MODULE_ALIAS("nfs4");
-EXPORT_SYMBOL_GPL(nfs4_fs_type);
+MODULE_ALIAS_FS("mynfs4");
+MODULE_ALIAS("mynfs4");
+EXPORT_SYMBOL_GPL(mynfs4_fs_type);
 #endif /* CONFIG_NFS_V4 */

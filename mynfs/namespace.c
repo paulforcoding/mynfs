@@ -30,7 +30,7 @@ static DECLARE_DELAYED_WORK(nfs_automount_task, nfs_expire_automounts);
 int nfs_mountpoint_expiry_timeout = 500 * HZ;
 
 /*
- * nfs_path - reconstruct the path given an arbitrary dentry
+ * mynfs_path - reconstruct the path given an arbitrary dentry
  * @base - used to return pointer to the end of devname part of path
  * @dentry_in - pointer to dentry
  * @buffer - result buffer
@@ -49,7 +49,7 @@ int nfs_mountpoint_expiry_timeout = 500 * HZ;
  *		       the original device (export) name
  *		       (if unset, the original name is returned verbatim)
  */
-char *nfs_path(char **p, struct dentry *dentry_in, char *buffer,
+char *mynfs_path(char **p, struct dentry *dentry_in, char *buffer,
 	       ssize_t buflen_in, unsigned flags)
 {
 	char *end;
@@ -128,7 +128,7 @@ Elong_unlock:
 Elong:
 	return ERR_PTR(-ENAMETOOLONG);
 }
-EXPORT_SYMBOL_GPL(nfs_path);
+EXPORT_SYMBOL_GPL(mynfs_path);
 
 /*
  * nfs_d_automount - Handle crossing a mountpoint on the server
@@ -255,11 +255,11 @@ void nfs_release_automount_timer(void)
 }
 
 /**
- * nfs_do_submount - set up mountpoint when crossing a filesystem boundary
+ * mynfs_do_submount - set up mountpoint when crossing a filesystem boundary
  * @fc: pointer to struct nfs_fs_context
  *
  */
-int nfs_do_submount(struct fs_context *fc)
+int mynfs_do_submount(struct fs_context *fc)
 {
 	struct nfs_fs_context *ctx = nfs_fc2context(fc);
 	struct dentry *dentry = ctx->clone_data.dentry;
@@ -297,9 +297,9 @@ int nfs_do_submount(struct fs_context *fc)
 	kfree(buffer);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(nfs_do_submount);
+EXPORT_SYMBOL_GPL(mynfs_do_submount);
 
-int nfs_submount(struct fs_context *fc, struct nfs_server *server)
+int mynfs_submount(struct fs_context *fc, struct nfs_server *server)
 {
 	struct nfs_fs_context *ctx = nfs_fc2context(fc);
 	struct dentry *dentry = ctx->clone_data.dentry;
@@ -314,9 +314,9 @@ int nfs_submount(struct fs_context *fc, struct nfs_server *server)
 		return err;
 
 	ctx->selected_flavor = server->client->cl_auth->au_flavor;
-	return nfs_do_submount(fc);
+	return mynfs_do_submount(fc);
 }
-EXPORT_SYMBOL_GPL(nfs_submount);
+EXPORT_SYMBOL_GPL(mynfs_submount);
 
 static int param_set_nfs_timeout(const char *val, const struct kernel_param *kp)
 {

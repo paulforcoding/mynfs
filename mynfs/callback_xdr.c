@@ -981,7 +981,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp)
 		}
 		if (!check_gss_callback_principal(cps.clp, rqstp)) {
 			trace_nfs_cb_badprinc(rqstp->rq_xid, hdr_arg.cb_ident);
-			nfs_put_client(cps.clp);
+			mynfs_put_client(cps.clp);
 			goto out_invalidcred;
 		}
 	}
@@ -991,7 +991,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp)
 	hdr_res.tag = hdr_arg.tag;
 	if (encode_compound_hdr_res(&rqstp->rq_res_stream, &hdr_res) != 0) {
 		if (cps.clp)
-			nfs_put_client(cps.clp);
+			mynfs_put_client(cps.clp);
 		return rpc_system_err;
 	}
 	while (status == 0 && nops != hdr_arg.nops) {
@@ -1014,7 +1014,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp)
 	*hdr_res.status = status;
 	*hdr_res.nops = htonl(nops);
 	nfs4_cb_free_slot(&cps);
-	nfs_put_client(cps.clp);
+	mynfs_put_client(cps.clp);
 	return rpc_success;
 
 out_invalidcred:

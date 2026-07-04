@@ -162,7 +162,7 @@ void nfs_fattr_map_and_free_names(struct nfs_server *server, struct nfs_fattr *f
 		nfs_fattr_free_group_name(fattr);
 }
 
-int nfs_map_string_to_numeric(const char *name, size_t namelen, __u32 *res)
+int mynfs_map_string_to_numeric(const char *name, size_t namelen, __u32 *res)
 {
 	unsigned long val;
 	char buf[16];
@@ -176,7 +176,7 @@ int nfs_map_string_to_numeric(const char *name, size_t namelen, __u32 *res)
 	*res = val;
 	return 1;
 }
-EXPORT_SYMBOL_GPL(nfs_map_string_to_numeric);
+EXPORT_SYMBOL_GPL(mynfs_map_string_to_numeric);
 
 static int nfs_map_numeric_to_string(__u32 id, char *buf, size_t buflen)
 {
@@ -194,7 +194,7 @@ static struct key_type key_type_id_resolver = {
 	.read		= user_read,
 };
 
-int nfs_idmap_init(void)
+int mynfs_idmap_init(void)
 {
 	struct cred *cred;
 	struct key *keyring;
@@ -240,7 +240,7 @@ failed_put_cred:
 	return ret;
 }
 
-void nfs_idmap_quit(void)
+void mynfs_idmap_quit(void)
 {
 	key_revoke(id_resolver_cache->thread_keyring);
 	unregister_key_type(&key_type_id_resolver);
@@ -708,7 +708,7 @@ idmap_pipe_downcall(struct file *filp, const char __user *src, size_t mlen)
 	ret = nfs_idmap_read_and_verify_message(&im, &data->idmap_msg,
 						rka->target_key, authkey);
 	if (ret >= 0) {
-		key_set_timeout(rka->target_key, nfs_idmap_cache_timeout);
+		key_set_timeout(rka->target_key, mynfs_idmap_cache_timeout);
 		ret = mlen;
 	}
 
@@ -748,7 +748,7 @@ int nfs_map_name_to_uid(const struct nfs_server *server, const char *name, size_
 	__u32 id = -1;
 	int ret = 0;
 
-	if (!nfs_map_string_to_numeric(name, namelen, &id))
+	if (!mynfs_map_string_to_numeric(name, namelen, &id))
 		ret = nfs_idmap_lookup_id(name, namelen, "uid", &id, idmap);
 	if (ret == 0) {
 		*uid = make_kuid(idmap_userns(idmap), id);
@@ -765,7 +765,7 @@ int nfs_map_group_to_gid(const struct nfs_server *server, const char *name, size
 	__u32 id = -1;
 	int ret = 0;
 
-	if (!nfs_map_string_to_numeric(name, namelen, &id))
+	if (!mynfs_map_string_to_numeric(name, namelen, &id))
 		ret = nfs_idmap_lookup_id(name, namelen, "gid", &id, idmap);
 	if (ret == 0) {
 		*gid = make_kgid(idmap_userns(idmap), id);

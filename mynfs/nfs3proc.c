@@ -146,7 +146,7 @@ nfs3_proc_setattr(struct dentry *dentry, struct nfs_fattr *fattr,
 	if (status == 0) {
 		nfs_setattr_update_inode(inode, sattr, fattr);
 		if (NFS_I(inode)->cache_validity & NFS_INO_INVALID_ACL)
-			nfs_zap_acl_cache(inode);
+			mynfs_zap_acl_cache(inode);
 	}
 	dprintk("NFS reply setattr: %d\n", status);
 	return status;
@@ -812,7 +812,7 @@ do_proc_fsinfo(struct rpc_clnt *client, struct nfs_fh *fhandle,
 
 /*
  * Bare-bones access to fsinfo: this is for nfs_get_root/nfs_get_sb via
- * nfs_create_server
+ * mynfs_create_server
  */
 static int
 nfs3_proc_fsinfo(struct nfs_server *server, struct nfs_fh *fhandle,
@@ -887,7 +887,7 @@ static int nfs3_write_done(struct rpc_task *task, struct nfs_pgio_header *hdr)
 	if (nfs3_async_handle_jukebox(task, inode))
 		return -EAGAIN;
 	if (task->tk_status >= 0)
-		nfs_writeback_update_inode(hdr);
+		mynfs_writeback_update_inode(hdr);
 	return 0;
 }
 
@@ -992,15 +992,15 @@ static int nfs3_return_delegation(struct inode *inode)
 }
 
 static const struct inode_operations nfs3_dir_inode_operations = {
-	.create		= nfs_create,
-	.lookup		= nfs_lookup,
-	.link		= nfs_link,
-	.unlink		= nfs_unlink,
-	.symlink	= nfs_symlink,
-	.mkdir		= nfs_mkdir,
-	.rmdir		= nfs_rmdir,
-	.mknod		= nfs_mknod,
-	.rename		= nfs_rename,
+	.create		= mynfs_create,
+	.lookup		= mynfs_lookup,
+	.link		= mynfs_link,
+	.unlink		= mynfs_unlink,
+	.symlink	= mynfs_symlink,
+	.mkdir		= mynfs_mkdir,
+	.rmdir		= mynfs_rmdir,
+	.mknod		= mynfs_mknod,
+	.rename		= mynfs_rename,
 	.permission	= nfs_permission,
 	.getattr	= nfs_getattr,
 	.setattr	= nfs_setattr,
@@ -1030,8 +1030,8 @@ const struct nfs_rpc_ops nfs_v3_clientops = {
 	.file_ops	= &nfs_file_operations,
 	.nlmclnt_ops	= &nlmclnt_fl_close_lock_ops,
 	.getroot	= nfs3_proc_get_root,
-	.submount	= nfs_submount,
-	.try_get_tree	= nfs_try_get_tree,
+	.submount	= mynfs_submount,
+	.try_get_tree	= mynfs_try_get_tree,
 	.getattr	= nfs3_proc_getattr,
 	.setattr	= nfs3_proc_setattr,
 	.lookup		= nfs3_proc_lookup,
@@ -1066,12 +1066,12 @@ const struct nfs_rpc_ops nfs_v3_clientops = {
 	.commit_done	= nfs3_commit_done,
 	.lock		= nfs3_proc_lock,
 	.clear_acl_cache = forget_all_cached_acls,
-	.close_context	= nfs_close_context,
+	.close_context	= mynfs_close_context,
 	.have_delegation = nfs3_have_delegation,
 	.return_delegation = nfs3_return_delegation,
-	.alloc_client	= nfs_alloc_client,
-	.init_client	= nfs_init_client,
-	.free_client	= nfs_free_client,
+	.alloc_client	= mynfs_alloc_client,
+	.init_client	= mynfs_init_client,
+	.free_client	= mynfs_free_client,
 	.create_server	= nfs3_create_server,
 	.clone_server	= nfs3_clone_server,
 };

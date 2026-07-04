@@ -24,7 +24,7 @@ struct nfs_subversion {
 
 struct nfs_subversion *get_nfs_version(unsigned int);
 void put_nfs_version(struct nfs_subversion *);
-void register_nfs_version(struct nfs_subversion *);
-void unregister_nfs_version(struct nfs_subversion *);
+void mynfs_register_nfs_version(struct nfs_subversion *);
+void mynfs_unregister_nfs_version(struct nfs_subversion *);
 
 #endif /* __LINUX_INTERNAL_NFS_H */

@@ -22,22 +22,22 @@ static int nfs4_write_inode(struct inode *inode, struct writeback_control *wbc);
 static void nfs4_evict_inode(struct inode *inode);
 
 static const struct super_operations nfs4_sops = {
-	.alloc_inode	= nfs_alloc_inode,
-	.free_inode	= nfs_free_inode,
+	.alloc_inode	= mynfs_alloc_inode,
+	.free_inode	= mynfs_free_inode,
 	.write_inode	= nfs4_write_inode,
-	.drop_inode	= nfs_drop_inode,
-	.statfs		= nfs_statfs,
+	.drop_inode	= mynfs_drop_inode,
+	.statfs		= mynfs_statfs,
 	.evict_inode	= nfs4_evict_inode,
-	.umount_begin	= nfs_umount_begin,
-	.show_options	= nfs_show_options,
-	.show_devname	= nfs_show_devname,
-	.show_path	= nfs_show_path,
-	.show_stats	= nfs_show_stats,
+	.umount_begin	= mynfs_umount_begin,
+	.show_options	= mynfs_show_options,
+	.show_devname	= mynfs_show_devname,
+	.show_path	= mynfs_show_path,
+	.show_stats	= mynfs_show_stats,
 };
 
-struct nfs_subversion nfs_v4 = {
+struct nfs_subversion mynfs_v4 = {
 	.owner		= THIS_MODULE,
-	.nfs_fs		= &nfs4_fs_type,
+	.nfs_fs		= &mynfs4_fs_type,
 	.rpc_vers	= &nfs_version4,
 	.rpc_ops	= &nfs_v4_clientops,
 	.sops		= &nfs4_sops,
@@ -46,10 +46,10 @@ struct nfs_subversion nfs_v4 = {
 
 static int nfs4_write_inode(struct inode *inode, struct writeback_control *wbc)
 {
-	int ret = nfs_write_inode(inode, wbc);
+	int ret = mynfs_write_inode(inode, wbc);
 
 	if (ret == 0)
-		ret = pnfs_layoutcommit_inode(inode,
+		ret = mypnfs_layoutcommit_inode(inode,
 				wbc->sync_mode == WB_SYNC_ALL);
 	return ret;
 }
@@ -69,7 +69,7 @@ static void nfs4_evict_inode(struct inode *inode)
 	pnfs_return_layout(inode);
 	pnfs_destroy_layout_final(NFS_I(inode));
 	/* First call standard NFS clear_inode() code */
-	nfs_clear_inode(inode);
+	mynfs_clear_inode(inode);
 	nfs4_xattr_cache_zap(inode);
 }
 
@@ -169,7 +169,7 @@ static int do_nfs4_mount(struct nfs_server *server,
 
 	root_fc = vfs_dup_fs_context(fc);
 	if (IS_ERR(root_fc)) {
-		nfs_free_server(server);
+		mynfs_free_server(server);
 		return PTR_ERR(root_fc);
 	}
 	kfree(root_fc->source);
@@ -282,53 +282,53 @@ int nfs4_get_referral_tree(struct fs_context *fc)
 	return err;
 }
 
-int __init init_nfs_v4(void)
+int __init mynfs_init_nfs_v4(void)
 {
 	int err;
 
-	err = nfs_dns_resolver_init();
+	err = mynfs_dns_resolver_init();
 	if (err)
 		goto out;
 
-	err = nfs_idmap_init();
+	err = mynfs_idmap_init();
 	if (err)
 		goto out1;
 
 #ifdef CONFIG_NFS_V4_2
-	err = nfs4_xattr_cache_init();
+	err = mynfs4_xattr_cache_init();
 	if (err)
 		goto out2;
 #endif
 
-	err = nfs4_register_sysctl();
+	err = mynfs4_register_sysctl();
 	if (err)
 		goto out2;
 
 #ifdef CONFIG_NFS_V4_2
 	nfs42_ssc_register_ops();
 #endif
-	register_nfs_version(&nfs_v4);
+	mynfs_register_nfs_version(&mynfs_v4);
 	return 0;
 out2:
-	nfs_idmap_quit();
+	mynfs_idmap_quit();
 out1:
-	nfs_dns_resolver_destroy();
+	mynfs_dns_resolver_destroy();
 out:
 	return err;
 }
 
-void __exit exit_nfs_v4(void)
+void __exit mynfs_exit_nfs_v4(void)
 {
 	/* Not called in the _init(), conditionally loaded */
 	nfs4_pnfs_v3_ds_connect_unload();
 
-	unregister_nfs_version(&nfs_v4);
+	mynfs_unregister_nfs_version(&mynfs_v4);
 #ifdef CONFIG_NFS_V4_2
-	nfs4_xattr_cache_exit();
+	mynfs4_xattr_cache_exit();
 	nfs42_ssc_unregister_ops();
 #endif
-	nfs4_unregister_sysctl();
-	nfs_idmap_quit();
-	nfs_dns_resolver_destroy();
+	mynfs4_unregister_sysctl();
+	mynfs_idmap_quit();
+	mynfs_dns_resolver_destroy();
 }
 

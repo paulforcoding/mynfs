@@ -41,6 +41,6 @@ struct nfs_net {
 #endif
 };
 
-extern unsigned int nfs_net_id;
+extern unsigned int mynfs_net_id;
 
 #endif

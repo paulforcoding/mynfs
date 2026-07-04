@@ -42,10 +42,10 @@ static int nfs4_callback_up_net(struct svc_serv *serv, struct net *net)
 {
 	const struct cred *cred = current_cred();
 	int ret;
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 
 	ret = svc_xprt_create(serv, "tcp", net, PF_INET,
-			      nfs_callback_set_tcpport, SVC_SOCK_ANONYMOUS,
+			      mynfs_callback_set_tcpport, SVC_SOCK_ANONYMOUS,
 			      cred);
 	if (ret <= 0)
 		goto out_err;
@@ -54,7 +54,7 @@ static int nfs4_callback_up_net(struct svc_serv *serv, struct net *net)
 		nn->nfs_callback_tcpport, PF_INET, net->ns.inum);
 
 	ret = svc_xprt_create(serv, "tcp", net, PF_INET6,
-			      nfs_callback_set_tcpport, SVC_SOCK_ANONYMOUS,
+			      mynfs_callback_set_tcpport, SVC_SOCK_ANONYMOUS,
 			      cred);
 	if (ret > 0) {
 		nn->nfs_callback_tcpport6 = ret;
@@ -106,7 +106,7 @@ static inline void nfs_callback_bc_serv(u32 minorversion, struct rpc_xprt *xprt,
 static int nfs_callback_start_svc(int minorversion, struct rpc_xprt *xprt,
 				  struct svc_serv *serv)
 {
-	int nrservs = nfs_callback_nr_threads;
+	int nrservs = mynfs_callback_nr_threads;
 	int ret;
 
 	nfs_callback_bc_serv(minorversion, xprt, serv);
@@ -128,7 +128,7 @@ static int nfs_callback_start_svc(int minorversion, struct rpc_xprt *xprt,
 
 static void nfs_callback_down_net(u32 minorversion, struct svc_serv *serv, struct net *net)
 {
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 
 	if (--nn->cb_users[minorversion])
 		return;
@@ -140,7 +140,7 @@ static void nfs_callback_down_net(u32 minorversion, struct svc_serv *serv, struc
 static int nfs_callback_up_net(int minorversion, struct svc_serv *serv,
 			       struct net *net, struct rpc_xprt *xprt)
 {
-	struct nfs_net *nn = net_generic(net, nfs_net_id);
+	struct nfs_net *nn = net_generic(net, mynfs_net_id);
 	int ret;
 
 	if (nn->cb_users[minorversion]++)

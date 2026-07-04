@@ -112,7 +112,7 @@ static char *nfs_path_component(const char *nfspath, const char *end)
 static char *nfs4_path(struct dentry *dentry, char *buffer, ssize_t buflen)
 {
 	char *limit;
-	char *path = nfs_path(&limit, dentry, buffer, buflen,
+	char *path = mynfs_path(&limit, dentry, buffer, buflen,
 			      NFS_PATH_CANONICAL);
 	if (!IS_ERR(path)) {
 		char *path_component = nfs_path_component(path, limit);
@@ -220,7 +220,7 @@ static struct rpc_clnt *nfs_find_best_sec(struct rpc_clnt *clnt,
 							&secinfo->flavor_info);
 			/* does the pseudoflavor match a sec= mount opt? */
 			if (pflavor != RPC_AUTH_MAXFLAVOR &&
-			    nfs_auth_info_match(&server->auth_info, pflavor)) {
+			    mynfs_auth_info_match(&server->auth_info, pflavor)) {
 				struct rpc_clnt *new;
 				struct rpc_cred *cred;
 
@@ -468,7 +468,7 @@ int nfs4_submount(struct fs_context *fc, struct nfs_server *server)
 	if (ctx->clone_data.fattr->valid & NFS_ATTR_FATTR_V4_REFERRAL) {
 		ret = nfs_do_refmount(fc, client);
 	} else {
-		ret = nfs_do_submount(fc);
+		ret = mynfs_do_submount(fc);
 	}
 
 	rpc_shutdown_client(client);

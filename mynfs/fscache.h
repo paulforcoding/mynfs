@@ -94,7 +94,7 @@ extern void nfs_fscache_release_super_cookie(struct super_block *);
 
 extern void nfs_fscache_init_inode(struct inode *);
 extern void nfs_fscache_clear_inode(struct inode *);
-extern void nfs_fscache_open_file(struct inode *, struct file *);
+extern void mynfs_fscache_open_file(struct inode *, struct file *);
 extern void nfs_fscache_release_file(struct inode *, struct file *);
 extern int nfs_netfs_readahead(struct readahead_control *ractl);
 extern int nfs_netfs_read_folio(struct file *file, struct folio *folio);
@@ -171,7 +171,7 @@ static inline void nfs_fscache_release_super_cookie(struct super_block *sb) {}
 
 static inline void nfs_fscache_init_inode(struct inode *inode) {}
 static inline void nfs_fscache_clear_inode(struct inode *inode) {}
-static inline void nfs_fscache_open_file(struct inode *inode,
+static inline void mynfs_fscache_open_file(struct inode *inode,
 					 struct file *filp) {}
 static inline void nfs_fscache_release_file(struct inode *inode, struct file *file) {}
 static inline int nfs_netfs_readahead(struct readahead_control *ractl)

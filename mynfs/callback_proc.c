@@ -143,14 +143,14 @@ static struct inode *nfs_layout_find_inode_by_stateid(struct nfs_client *clp,
 				continue;
 			if (!nfs4_stateid_match_other(stateid, &lo->plh_stateid))
 				continue;
-			if (nfs_sb_active(server->super))
+			if (mynfs_sb_active(server->super))
 				inode = igrab(lo->plh_inode);
 			else
 				inode = ERR_PTR(-EAGAIN);
 			rcu_read_unlock();
 			if (inode)
 				return inode;
-			nfs_sb_deactive(server->super);
+			mynfs_sb_deactive(server->super);
 			return ERR_PTR(-EAGAIN);
 		}
 	}
@@ -180,14 +180,14 @@ static struct inode *nfs_layout_find_inode_by_fh(struct nfs_client *clp,
 				continue;
 			if (nfsi->layout != lo)
 				continue;
-			if (nfs_sb_active(server->super))
+			if (mynfs_sb_active(server->super))
 				inode = igrab(lo->plh_inode);
 			else
 				inode = ERR_PTR(-EAGAIN);
 			rcu_read_unlock();
 			if (inode)
 				return inode;
-			nfs_sb_deactive(server->super);
+			mynfs_sb_deactive(server->super);
 			return ERR_PTR(-EAGAIN);
 		}
 	}
@@ -262,7 +262,7 @@ static u32 initiate_file_draining(struct nfs_client *clp,
 		goto out_noput;
 	}
 
-	pnfs_layoutcommit_inode(ino, false);
+	mypnfs_layoutcommit_inode(ino, false);
 
 
 	spin_lock(&ino->i_lock);
@@ -386,7 +386,7 @@ __be32 nfs4_callback_devicenotify(void *argp, void *resp,
 			if (!ld)
 				continue;
 		}
-		nfs4_delete_deviceid(ld, cps->clp, &dev->cbd_dev_id);
+		mynfs4_delete_deviceid(ld, cps->clp, &dev->cbd_dev_id);
 	}
 	pnfs_put_layoutdriver(ld);
 out:

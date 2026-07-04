@@ -628,7 +628,7 @@ int nfs4_init_session(struct nfs_client *clp)
 	return nfs41_check_session_ready(clp);
 }
 
-int nfs4_init_ds_session(struct nfs_client *clp, unsigned long lease_time)
+int mynfs4_init_ds_session(struct nfs_client *clp, unsigned long lease_time)
 {
 	struct nfs4_session *session = clp->cl_session;
 	int ret;
@@ -652,6 +652,6 @@ int nfs4_init_ds_session(struct nfs_client *clp, unsigned long lease_time)
 		return -ENODEV;
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs4_init_ds_session);
+EXPORT_SYMBOL_GPL(mynfs4_init_ds_session);
 
 #endif	/* defined(CONFIG_NFS_V4_1) */

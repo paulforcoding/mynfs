@@ -18,7 +18,7 @@
  *   particular server are held in the same superblock
  * - NFS superblocks can have several effective roots to the dentry tree
  * - directory type roots are spliced into the tree when a path from one root reaches the root
- *   of another (see nfs_lookup())
+ *   of another (see mynfs_lookup())
  */
 
 #include <linux/module.h>
@@ -76,36 +76,36 @@
 
 #define NFSDBG_FACILITY		NFSDBG_VFS
 
-const struct super_operations nfs_sops = {
-	.alloc_inode	= nfs_alloc_inode,
-	.free_inode	= nfs_free_inode,
-	.write_inode	= nfs_write_inode,
-	.drop_inode	= nfs_drop_inode,
-	.statfs		= nfs_statfs,
+const struct super_operations mynfs_sops = {
+	.alloc_inode	= mynfs_alloc_inode,
+	.free_inode	= mynfs_free_inode,
+	.write_inode	= mynfs_write_inode,
+	.drop_inode	= mynfs_drop_inode,
+	.statfs		= mynfs_statfs,
 	.evict_inode	= nfs_evict_inode,
-	.umount_begin	= nfs_umount_begin,
-	.show_options	= nfs_show_options,
-	.show_devname	= nfs_show_devname,
-	.show_path	= nfs_show_path,
-	.show_stats	= nfs_show_stats,
+	.umount_begin	= mynfs_umount_begin,
+	.show_options	= mynfs_show_options,
+	.show_devname	= mynfs_show_devname,
+	.show_path	= mynfs_show_path,
+	.show_stats	= mynfs_show_stats,
 };
-EXPORT_SYMBOL_GPL(nfs_sops);
+EXPORT_SYMBOL_GPL(mynfs_sops);
 
 #ifdef CONFIG_NFS_V4_2
-static const struct nfs_ssc_client_ops nfs_ssc_clnt_ops_tbl = {
-	.sco_sb_deactive = nfs_sb_deactive,
+static const struct nfs_ssc_client_ops mynfs_ssc_clnt_ops_tbl = {
+	.sco_sb_deactive = mynfs_sb_deactive,
 };
 #endif
 
 #if IS_ENABLED(CONFIG_NFS_V4)
 static int __init register_nfs4_fs(void)
 {
-	return register_filesystem(&nfs4_fs_type);
+	return register_filesystem(&mynfs4_fs_type);
 }
 
 static void unregister_nfs4_fs(void)
 {
-	unregister_filesystem(&nfs4_fs_type);
+	unregister_filesystem(&mynfs4_fs_type);
 }
 #else
 static int __init register_nfs4_fs(void)
@@ -121,12 +121,12 @@ static void unregister_nfs4_fs(void)
 #ifdef CONFIG_NFS_V4_2
 static void nfs_ssc_register_ops(void)
 {
-	nfs_ssc_register(&nfs_ssc_clnt_ops_tbl);
+	nfs_ssc_register(&mynfs_ssc_clnt_ops_tbl);
 }
 
 static void nfs_ssc_unregister_ops(void)
 {
-	nfs_ssc_unregister(&nfs_ssc_clnt_ops_tbl);
+	nfs_ssc_unregister(&mynfs_ssc_clnt_ops_tbl);
 }
 #endif /* CONFIG_NFS_V4_2 */
 
@@ -139,11 +139,11 @@ static struct shrinker acl_shrinker = {
 /*
  * Register the NFS filesystems
  */
-int __init register_nfs_fs(void)
+int __init mynfs_register_nfs_fs(void)
 {
 	int ret;
 
-        ret = register_filesystem(&nfs_fs_type);
+        ret = register_filesystem(&mynfs_fs_type);
 	if (ret < 0)
 		goto error_0;
 
@@ -166,7 +166,7 @@ error_3:
 error_2:
 	unregister_nfs4_fs();
 error_1:
-	unregister_filesystem(&nfs_fs_type);
+	unregister_filesystem(&mynfs_fs_type);
 error_0:
 	return ret;
 }
@@ -174,7 +174,7 @@ error_0:
 /*
  * Unregister the NFS filesystems
  */
-void __exit unregister_nfs_fs(void)
+void __exit mynfs_unregister_nfs_fs(void)
 {
 	unregister_shrinker(&acl_shrinker);
 	nfs_unregister_sysctl();
@@ -182,10 +182,10 @@ void __exit unregister_nfs_fs(void)
 #ifdef CONFIG_NFS_V4_2
 	nfs_ssc_unregister_ops();
 #endif
-	unregister_filesystem(&nfs_fs_type);
+	unregister_filesystem(&mynfs_fs_type);
 }
 
-bool nfs_sb_active(struct super_block *sb)
+bool mynfs_sb_active(struct super_block *sb)
 {
 	struct nfs_server *server = NFS_SB(sb);
 
@@ -195,16 +195,16 @@ bool nfs_sb_active(struct super_block *sb)
 		atomic_dec(&sb->s_active);
 	return true;
 }
-EXPORT_SYMBOL_GPL(nfs_sb_active);
+EXPORT_SYMBOL_GPL(mynfs_sb_active);
 
-void nfs_sb_deactive(struct super_block *sb)
+void mynfs_sb_deactive(struct super_block *sb)
 {
 	struct nfs_server *server = NFS_SB(sb);
 
 	if (atomic_dec_and_test(&server->active))
 		deactivate_super(sb);
 }
-EXPORT_SYMBOL_GPL(nfs_sb_deactive);
+EXPORT_SYMBOL_GPL(mynfs_sb_deactive);
 
 static int __nfs_list_for_each_server(struct list_head *head,
 		int (*fn)(struct nfs_server *, void *),
@@ -215,11 +215,11 @@ static int __nfs_list_for_each_server(struct list_head *head,
 
 	rcu_read_lock();
 	list_for_each_entry_rcu(server, head, client_link) {
-		if (!(server->super && nfs_sb_active(server->super)))
+		if (!(server->super && mynfs_sb_active(server->super)))
 			continue;
 		rcu_read_unlock();
 		if (last)
-			nfs_sb_deactive(last->super);
+			mynfs_sb_deactive(last->super);
 		last = server;
 		ret = fn(server, data);
 		if (ret)
@@ -230,22 +230,22 @@ static int __nfs_list_for_each_server(struct list_head *head,
 	rcu_read_unlock();
 out:
 	if (last)
-		nfs_sb_deactive(last->super);
+		mynfs_sb_deactive(last->super);
 	return ret;
 }
 
-int nfs_client_for_each_server(struct nfs_client *clp,
+int mynfs_client_for_each_server(struct nfs_client *clp,
 		int (*fn)(struct nfs_server *, void *),
 		void *data)
 {
 	return __nfs_list_for_each_server(&clp->cl_superblocks, fn, data);
 }
-EXPORT_SYMBOL_GPL(nfs_client_for_each_server);
+EXPORT_SYMBOL_GPL(mynfs_client_for_each_server);
 
 /*
  * Deliver file system statistics to userspace
  */
-int nfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+int mynfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 {
 	struct nfs_server *server = NFS_SB(dentry->d_sb);
 	unsigned char blockbits;
@@ -304,7 +304,7 @@ int nfs_statfs(struct dentry *dentry, struct kstatfs *buf)
 	dprintk("%s: statfs error = %d\n", __func__, -error);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_statfs);
+EXPORT_SYMBOL_GPL(mynfs_statfs);
 
 /*
  * Map the security flavour number to a name
@@ -558,7 +558,7 @@ static void nfs_show_mount_options(struct seq_file *m, struct nfs_server *nfss,
 /*
  * Describe the mount options on this VFS mountpoint
  */
-int nfs_show_options(struct seq_file *m, struct dentry *root)
+int mynfs_show_options(struct seq_file *m, struct dentry *root)
 {
 	struct nfs_server *nfss = NFS_SB(root->d_sb);
 
@@ -572,7 +572,7 @@ int nfs_show_options(struct seq_file *m, struct dentry *root)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_show_options);
+EXPORT_SYMBOL_GPL(mynfs_show_options);
 
 #if IS_ENABLED(CONFIG_NFS_V4)
 static void show_lease(struct seq_file *m, struct nfs_server *server)
@@ -627,14 +627,14 @@ static void show_implementation_id(struct seq_file *m, struct nfs_server *nfss)
 }
 #endif
 
-int nfs_show_devname(struct seq_file *m, struct dentry *root)
+int mynfs_show_devname(struct seq_file *m, struct dentry *root)
 {
 	char *page = (char *) __get_free_page(GFP_KERNEL);
 	char *devname, *dummy;
 	int err = 0;
 	if (!page)
 		return -ENOMEM;
-	devname = nfs_path(&dummy, root, page, PAGE_SIZE, 0);
+	devname = mynfs_path(&dummy, root, page, PAGE_SIZE, 0);
 	if (IS_ERR(devname))
 		err = PTR_ERR(devname);
 	else
@@ -642,19 +642,19 @@ int nfs_show_devname(struct seq_file *m, struct dentry *root)
 	free_page((unsigned long)page);
 	return err;
 }
-EXPORT_SYMBOL_GPL(nfs_show_devname);
+EXPORT_SYMBOL_GPL(mynfs_show_devname);
 
-int nfs_show_path(struct seq_file *m, struct dentry *dentry)
+int mynfs_show_path(struct seq_file *m, struct dentry *dentry)
 {
 	seq_puts(m, "/");
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_show_path);
+EXPORT_SYMBOL_GPL(mynfs_show_path);
 
 /*
  * Present statistical information for this VFS mountpoint
  */
-int nfs_show_stats(struct seq_file *m, struct dentry *root)
+int mynfs_show_stats(struct seq_file *m, struct dentry *root)
 {
 	int i, cpu;
 	struct nfs_server *nfss = NFS_SB(root->d_sb);
@@ -733,13 +733,13 @@ int nfs_show_stats(struct seq_file *m, struct dentry *root)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_show_stats);
+EXPORT_SYMBOL_GPL(mynfs_show_stats);
 
 /*
  * Begin unmount by attempting to remove all automounted mountpoints we added
  * in response to xdev traversals and referrals
  */
-void nfs_umount_begin(struct super_block *sb)
+void mynfs_umount_begin(struct super_block *sb)
 {
 	struct nfs_server *server;
 	struct rpc_clnt *rpc;
@@ -753,13 +753,13 @@ void nfs_umount_begin(struct super_block *sb)
 	if (!IS_ERR(rpc))
 		rpc_killall_tasks(rpc);
 }
-EXPORT_SYMBOL_GPL(nfs_umount_begin);
+EXPORT_SYMBOL_GPL(mynfs_umount_begin);
 
 /*
  * Return true if 'match' is in auth_info or auth_info is empty.
  * Return false otherwise.
  */
-bool nfs_auth_info_match(const struct nfs_auth_info *auth_info,
+bool mynfs_auth_info_match(const struct nfs_auth_info *auth_info,
 			 rpc_authflavor_t match)
 {
 	int i;
@@ -773,7 +773,7 @@ bool nfs_auth_info_match(const struct nfs_auth_info *auth_info,
 	}
 	return false;
 }
-EXPORT_SYMBOL_GPL(nfs_auth_info_match);
+EXPORT_SYMBOL_GPL(mynfs_auth_info_match);
 
 /*
  * Ensure that a specified authtype in ctx->auth_info is supported by
@@ -803,7 +803,7 @@ static int nfs_verify_authflavors(struct nfs_fs_context *ctx,
 	for (i = 0; i < count; i++) {
 		flavor = server_authlist[i];
 
-		if (nfs_auth_info_match(&ctx->auth_info, flavor))
+		if (mynfs_auth_info_match(&ctx->auth_info, flavor))
 			goto out;
 
 		if (flavor == RPC_AUTH_NULL)
@@ -977,7 +977,7 @@ static struct nfs_server *nfs_try_mount_request(struct fs_context *fc)
 	return ctx->nfs_mod->rpc_ops->create_server(fc);
 }
 
-int nfs_try_get_tree(struct fs_context *fc)
+int mynfs_try_get_tree(struct fs_context *fc)
 {
 	struct nfs_fs_context *ctx = nfs_fc2context(fc);
 
@@ -988,7 +988,7 @@ int nfs_try_get_tree(struct fs_context *fc)
 
 	return nfs_get_tree_common(fc);
 }
-EXPORT_SYMBOL_GPL(nfs_try_get_tree);
+EXPORT_SYMBOL_GPL(mynfs_try_get_tree);
 
 
 #define NFS_REMOUNT_CMP_FLAGMASK ~(NFS_MOUNT_INTR \
@@ -1014,7 +1014,7 @@ nfs_compare_remount_data(struct nfs_server *nfss,
 	    ctx->version != nfss->nfs_client->rpc_ops->version ||
 	    ctx->minorversion != nfss->nfs_client->cl_minorversion ||
 	    ctx->retrans != nfss->client->cl_timeout->to_retries ||
-	    !nfs_auth_info_match(&ctx->auth_info, nfss->client->cl_auth->au_flavor) ||
+	    !mynfs_auth_info_match(&ctx->auth_info, nfss->client->cl_auth->au_flavor) ||
 	    ctx->acregmin != nfss->acregmin / HZ ||
 	    ctx->acregmax != nfss->acregmax / HZ ||
 	    ctx->acdirmin != nfss->acdirmin / HZ ||
@@ -1030,7 +1030,7 @@ nfs_compare_remount_data(struct nfs_server *nfss,
 	return 0;
 }
 
-int nfs_reconfigure(struct fs_context *fc)
+int mynfs_reconfigure(struct fs_context *fc)
 {
 	struct nfs_fs_context *ctx = nfs_fc2context(fc);
 	struct super_block *sb = fc->root->d_sb;
@@ -1074,9 +1074,9 @@ int nfs_reconfigure(struct fs_context *fc)
 	if (ret)
 		return ret;
 
-	return nfs_probe_server(nfss, NFS_FH(d_inode(fc->root)));
+	return mynfs_probe_server(nfss, NFS_FH(d_inode(fc->root)));
 }
-EXPORT_SYMBOL_GPL(nfs_reconfigure);
+EXPORT_SYMBOL_GPL(mynfs_reconfigure);
 
 /*
  * Finish setting up an NFS superblock
@@ -1342,7 +1342,7 @@ int nfs_get_tree_common(struct fs_context *fc)
 	}
 
 	if (s->s_fs_info != server) {
-		nfs_free_server(server);
+		mynfs_free_server(server);
 		server = NULL;
 	} else {
 		error = super_setup_bdi_name(s, "%u:%u", MAJOR(server->s_dev),
@@ -1379,7 +1379,7 @@ out:
 	return error;
 
 out_err_nosb:
-	nfs_free_server(server);
+	mynfs_free_server(server);
 	goto out;
 error_splat_super:
 	deactivate_locked_super(s);
@@ -1389,7 +1389,7 @@ error_splat_super:
 /*
  * Destroy an NFS superblock
  */
-void nfs_kill_super(struct super_block *s)
+void mynfs_kill_super(struct super_block *s)
 {
 	struct nfs_server *server = NFS_SB(s);
 
@@ -1398,9 +1398,9 @@ void nfs_kill_super(struct super_block *s)
 
 	nfs_fscache_release_super_cookie(s);
 
-	nfs_free_server(server);
+	mynfs_free_server(server);
 }
-EXPORT_SYMBOL_GPL(nfs_kill_super);
+EXPORT_SYMBOL_GPL(mynfs_kill_super);
 
 #if IS_ENABLED(CONFIG_NFS_V4)
 
@@ -1408,29 +1408,29 @@ EXPORT_SYMBOL_GPL(nfs_kill_super);
  * NFS v4 module parameters need to stay in the
  * NFS client for backwards compatibility
  */
-unsigned int nfs_callback_set_tcpport;
-unsigned short nfs_callback_nr_threads;
+unsigned int mynfs_callback_set_tcpport;
+unsigned short mynfs_callback_nr_threads;
 /* Default cache timeout is 10 minutes */
-unsigned int nfs_idmap_cache_timeout = 600;
+unsigned int mynfs_idmap_cache_timeout = 600;
 /* Turn off NFSv4 uid/gid mapping when using AUTH_SYS */
-bool nfs4_disable_idmapping = true;
-unsigned short max_session_slots = NFS4_DEF_SLOT_TABLE_SIZE;
-unsigned short max_session_cb_slots = NFS4_DEF_CB_SLOT_TABLE_SIZE;
-unsigned short send_implementation_id = 1;
-char nfs4_client_id_uniquifier[NFS4_CLIENT_ID_UNIQ_LEN] = "";
-bool recover_lost_locks = false;
-short nfs_delay_retrans = -1;
+bool mynfs4_disable_idmapping = true;
+unsigned short mynfs_max_session_slots = NFS4_DEF_SLOT_TABLE_SIZE;
+unsigned short mynfs_max_session_cb_slots = NFS4_DEF_CB_SLOT_TABLE_SIZE;
+unsigned short mynfs_send_implementation_id = 1;
+char mynfs4_client_id_uniquifier[NFS4_CLIENT_ID_UNIQ_LEN] = "";
+bool mynfs_recover_lost_locks = false;
+short mynfs_delay_retrans = -1;
 
-EXPORT_SYMBOL_GPL(nfs_callback_nr_threads);
-EXPORT_SYMBOL_GPL(nfs_callback_set_tcpport);
-EXPORT_SYMBOL_GPL(nfs_idmap_cache_timeout);
-EXPORT_SYMBOL_GPL(nfs4_disable_idmapping);
-EXPORT_SYMBOL_GPL(max_session_slots);
-EXPORT_SYMBOL_GPL(max_session_cb_slots);
-EXPORT_SYMBOL_GPL(send_implementation_id);
-EXPORT_SYMBOL_GPL(nfs4_client_id_uniquifier);
-EXPORT_SYMBOL_GPL(recover_lost_locks);
-EXPORT_SYMBOL_GPL(nfs_delay_retrans);
+EXPORT_SYMBOL_GPL(mynfs_callback_nr_threads);
+EXPORT_SYMBOL_GPL(mynfs_callback_set_tcpport);
+EXPORT_SYMBOL_GPL(mynfs_idmap_cache_timeout);
+EXPORT_SYMBOL_GPL(mynfs4_disable_idmapping);
+EXPORT_SYMBOL_GPL(mynfs_max_session_slots);
+EXPORT_SYMBOL_GPL(mynfs_max_session_cb_slots);
+EXPORT_SYMBOL_GPL(mynfs_send_implementation_id);
+EXPORT_SYMBOL_GPL(mynfs4_client_id_uniquifier);
+EXPORT_SYMBOL_GPL(mynfs_recover_lost_locks);
+EXPORT_SYMBOL_GPL(mynfs_delay_retrans);
 
 #define NFS_CALLBACK_MAXPORTNR (65535U)
 
@@ -1453,33 +1453,33 @@ static const struct kernel_param_ops param_ops_portnr = {
 };
 #define param_check_portnr(name, p) __param_check(name, p, unsigned int)
 
-module_param_named(callback_tcpport, nfs_callback_set_tcpport, portnr, 0644);
-module_param_named(callback_nr_threads, nfs_callback_nr_threads, ushort, 0644);
+module_param_named(callback_tcpport, mynfs_callback_set_tcpport, portnr, 0644);
+module_param_named(callback_nr_threads, mynfs_callback_nr_threads, ushort, 0644);
 MODULE_PARM_DESC(callback_nr_threads, "Number of threads that will be "
 		"assigned to the NFSv4 callback channels.");
-module_param(nfs_idmap_cache_timeout, int, 0644);
-module_param(nfs4_disable_idmapping, bool, 0644);
-module_param_string(nfs4_unique_id, nfs4_client_id_uniquifier,
+module_param(mynfs_idmap_cache_timeout, int, 0644);
+module_param(mynfs4_disable_idmapping, bool, 0644);
+module_param_string(nfs4_unique_id, mynfs4_client_id_uniquifier,
 			NFS4_CLIENT_ID_UNIQ_LEN, 0600);
-MODULE_PARM_DESC(nfs4_disable_idmapping,
+MODULE_PARM_DESC(mynfs4_disable_idmapping,
 		"Turn off NFSv4 idmapping when using 'sec=sys'");
-module_param(max_session_slots, ushort, 0644);
-MODULE_PARM_DESC(max_session_slots, "Maximum number of outstanding NFSv4.1 "
+module_param(mynfs_max_session_slots, ushort, 0644);
+MODULE_PARM_DESC(mynfs_max_session_slots, "Maximum number of outstanding NFSv4.1 "
 		"requests the client will negotiate");
-module_param(max_session_cb_slots, ushort, 0644);
-MODULE_PARM_DESC(max_session_cb_slots, "Maximum number of parallel NFSv4.1 "
+module_param(mynfs_max_session_cb_slots, ushort, 0644);
+MODULE_PARM_DESC(mynfs_max_session_cb_slots, "Maximum number of parallel NFSv4.1 "
 		"callbacks the client will process for a given server");
-module_param(send_implementation_id, ushort, 0644);
-MODULE_PARM_DESC(send_implementation_id,
+module_param(mynfs_send_implementation_id, ushort, 0644);
+MODULE_PARM_DESC(mynfs_send_implementation_id,
 		"Send implementation ID with NFSv4.1 exchange_id");
 MODULE_PARM_DESC(nfs4_unique_id, "nfs_client_id4 uniquifier string");
 
-module_param(recover_lost_locks, bool, 0644);
-MODULE_PARM_DESC(recover_lost_locks,
+module_param(mynfs_recover_lost_locks, bool, 0644);
+MODULE_PARM_DESC(mynfs_recover_lost_locks,
 		 "If the server reports that a lock might be lost, "
 		 "try to recover it risking data corruption.");
 
-module_param_named(delay_retrans, nfs_delay_retrans, short, 0644);
+module_param_named(delay_retrans, mynfs_delay_retrans, short, 0644);
 MODULE_PARM_DESC(delay_retrans,
 		 "Unless negative, specifies the number of times the NFSv4 "
 		 "client retries a request before returning an EAGAIN error, "

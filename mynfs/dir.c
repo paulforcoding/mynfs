@@ -10,7 +10,7 @@
  * 28 Sep 1996	Improved directory cache --okir
  * 23 Aug 1997  Claus Heine claus@momo.math.rwth-aachen.de 
  *              Re-implemented silly rename for unlink, newly implemented
- *              silly rename for nfs_rename() following the suggestions
+ *              silly rename for mynfs_rename() following the suggestions
  *              of Olaf Kirch (okir) found in this file.
  *              Following Linus comments on my original hack, this version
  *              depends only on the dcache stuff and doesn't touch the inode
@@ -85,7 +85,7 @@ alloc_nfs_open_dir_context(struct inode *dir)
 		spin_lock(&dir->i_lock);
 		if (list_empty(&nfsi->open_files) &&
 		    (nfsi->cache_validity & NFS_INO_DATA_INVAL_DEFER))
-			nfs_set_cache_invalid(dir,
+			mynfs_set_cache_invalid(dir,
 					      NFS_INO_INVALID_DATA |
 						      NFS_INO_REVAL_FORCED);
 		list_add_tail_rcu(&ctx->list, &nfsi->open_files);
@@ -1593,7 +1593,7 @@ out_force:
 static void nfs_mark_dir_for_revalidate(struct inode *inode)
 {
 	spin_lock(&inode->i_lock);
-	nfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE);
+	mynfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE);
 	spin_unlock(&inode->i_lock);
 }
 
@@ -1914,7 +1914,7 @@ static void nfs_drop_nlink(struct inode *inode)
 	if (inode->i_nlink > 0)
 		drop_nlink(inode);
 	NFS_I(inode)->attr_gencount = nfs_inc_attr_generation_counter();
-	nfs_set_cache_invalid(
+	mynfs_set_cache_invalid(
 		inode, NFS_INO_INVALID_CHANGE | NFS_INO_INVALID_CTIME |
 			       NFS_INO_INVALID_NLINK);
 	spin_unlock(&inode->i_lock);
@@ -1954,7 +1954,7 @@ const struct dentry_operations nfs_dentry_operations = {
 };
 EXPORT_SYMBOL_GPL(nfs_dentry_operations);
 
-struct dentry *nfs_lookup(struct inode *dir, struct dentry * dentry, unsigned int flags)
+struct dentry *mynfs_lookup(struct inode *dir, struct dentry * dentry, unsigned int flags)
 {
 	struct dentry *res;
 	struct inode *inode = NULL;
@@ -2016,20 +2016,20 @@ out:
 	nfs_free_fhandle(fhandle);
 	return res;
 }
-EXPORT_SYMBOL_GPL(nfs_lookup);
+EXPORT_SYMBOL_GPL(mynfs_lookup);
 
-void nfs_d_prune_case_insensitive_aliases(struct inode *inode)
+void mynfs_d_prune_case_insensitive_aliases(struct inode *inode)
 {
 	/* Case insensitive server? Revalidate dentries */
 	if (inode && nfs_server_capable(inode, NFS_CAP_CASE_INSENSITIVE))
 		d_prune_aliases(inode);
 }
-EXPORT_SYMBOL_GPL(nfs_d_prune_case_insensitive_aliases);
+EXPORT_SYMBOL_GPL(mynfs_d_prune_case_insensitive_aliases);
 
 #if IS_ENABLED(CONFIG_NFS_V4)
 static int nfs4_lookup_revalidate(struct dentry *, unsigned int);
 
-const struct dentry_operations nfs4_dentry_operations = {
+const struct dentry_operations mynfs4_dentry_operations = {
 	.d_revalidate	= nfs4_lookup_revalidate,
 	.d_weak_revalidate	= nfs_weak_revalidate,
 	.d_delete	= nfs_dentry_delete,
@@ -2037,7 +2037,7 @@ const struct dentry_operations nfs4_dentry_operations = {
 	.d_automount	= nfs_d_automount,
 	.d_release	= nfs_d_release,
 };
-EXPORT_SYMBOL_GPL(nfs4_dentry_operations);
+EXPORT_SYMBOL_GPL(mynfs4_dentry_operations);
 
 static struct nfs_open_context *create_nfs_open_context(struct dentry *dentry, int open_flags, struct file *filp)
 {
@@ -2046,7 +2046,7 @@ static struct nfs_open_context *create_nfs_open_context(struct dentry *dentry, i
 
 static int do_open(struct inode *inode, struct file *filp)
 {
-	nfs_fscache_open_file(inode, filp);
+	mynfs_fscache_open_file(inode, filp);
 	return 0;
 }
 
@@ -2067,7 +2067,7 @@ out:
 	return err;
 }
 
-int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
+int mynfs_atomic_open(struct inode *dir, struct dentry *dentry,
 		    struct file *file, unsigned open_flags,
 		    umode_t mode)
 {
@@ -2088,7 +2088,7 @@ int nfs_atomic_open(struct inode *dir, struct dentry *dentry,
 	dfprintk(VFS, "NFS: atomic_open(%s/%lu), %pd\n",
 			dir->i_sb->s_id, dir->i_ino, dentry);
 
-	err = nfs_check_flags(open_flags);
+	err = mynfs_check_flags(open_flags);
 	if (err)
 		return err;
 
@@ -2183,7 +2183,7 @@ out:
 	return err;
 
 no_open:
-	res = nfs_lookup(dir, dentry, lookup_flags);
+	res = mynfs_lookup(dir, dentry, lookup_flags);
 	if (!res) {
 		inode = d_inode(dentry);
 		if ((lookup_flags & LOOKUP_DIRECTORY) && inode &&
@@ -2213,7 +2213,7 @@ no_open:
 		return PTR_ERR(res);
 	return finish_no_open(file, res);
 }
-EXPORT_SYMBOL_GPL(nfs_atomic_open);
+EXPORT_SYMBOL_GPL(mynfs_atomic_open);
 
 static int
 nfs4_do_lookup_revalidate(struct inode *dir, struct dentry *dentry,
@@ -2330,7 +2330,7 @@ EXPORT_SYMBOL_GPL(nfs_instantiate);
  * that the operation succeeded on the server, but an error in the
  * reply path made it appear to have failed.
  */
-int nfs_create(struct mnt_idmap *idmap, struct inode *dir,
+int mynfs_create(struct mnt_idmap *idmap, struct inode *dir,
 	       struct dentry *dentry, umode_t mode, bool excl)
 {
 	struct iattr attr;
@@ -2353,13 +2353,13 @@ out_err:
 	d_drop(dentry);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_create);
+EXPORT_SYMBOL_GPL(mynfs_create);
 
 /*
  * See comments for nfs_proc_create regarding failed operations.
  */
 int
-nfs_mknod(struct mnt_idmap *idmap, struct inode *dir,
+mynfs_mknod(struct mnt_idmap *idmap, struct inode *dir,
 	  struct dentry *dentry, umode_t mode, dev_t rdev)
 {
 	struct iattr attr;
@@ -2381,12 +2381,12 @@ out_err:
 	d_drop(dentry);
 	return status;
 }
-EXPORT_SYMBOL_GPL(nfs_mknod);
+EXPORT_SYMBOL_GPL(mynfs_mknod);
 
 /*
  * See comments for nfs_proc_create regarding failed operations.
  */
-int nfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+int mynfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
 	      struct dentry *dentry, umode_t mode)
 {
 	struct iattr attr;
@@ -2408,7 +2408,7 @@ out_err:
 	d_drop(dentry);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_mkdir);
+EXPORT_SYMBOL_GPL(mynfs_mkdir);
 
 static void nfs_dentry_handle_enoent(struct dentry *dentry)
 {
@@ -2426,12 +2426,12 @@ static void nfs_dentry_remove_handle_error(struct inode *dir,
 		nfs_set_verifier(dentry, nfs_save_change_attribute(dir));
 		break;
 	case 0:
-		nfs_d_prune_case_insensitive_aliases(d_inode(dentry));
+		mynfs_d_prune_case_insensitive_aliases(d_inode(dentry));
 		nfs_set_verifier(dentry, nfs_save_change_attribute(dir));
 	}
 }
 
-int nfs_rmdir(struct inode *dir, struct dentry *dentry)
+int mynfs_rmdir(struct inode *dir, struct dentry *dentry)
 {
 	int error;
 
@@ -2458,7 +2458,7 @@ int nfs_rmdir(struct inode *dir, struct dentry *dentry)
 
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_rmdir);
+EXPORT_SYMBOL_GPL(mynfs_rmdir);
 
 /*
  * Remove a file after making sure there are no pending writes,
@@ -2500,7 +2500,7 @@ out:
  *
  *  If sillyrename() returns 0, we do nothing, otherwise we unlink.
  */
-int nfs_unlink(struct inode *dir, struct dentry *dentry)
+int mynfs_unlink(struct inode *dir, struct dentry *dentry)
 {
 	int error;
 
@@ -2538,7 +2538,7 @@ out:
 	trace_nfs_unlink_exit(dir, dentry, error);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_unlink);
+EXPORT_SYMBOL_GPL(mynfs_unlink);
 
 /*
  * To create a symbolic link, most file systems instantiate a new inode,
@@ -2555,7 +2555,7 @@ EXPORT_SYMBOL_GPL(nfs_unlink);
  * now have a new file handle and can instantiate an in-core NFS inode
  * and move the raw page into its mapping.
  */
-int nfs_symlink(struct mnt_idmap *idmap, struct inode *dir,
+int mynfs_symlink(struct mnt_idmap *idmap, struct inode *dir,
 		struct dentry *dentry, const char *symname)
 {
 	struct folio *folio;
@@ -2609,10 +2609,10 @@ int nfs_symlink(struct mnt_idmap *idmap, struct inode *dir,
 	folio_put(folio);
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_symlink);
+EXPORT_SYMBOL_GPL(mynfs_symlink);
 
 int
-nfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
+mynfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
 {
 	struct inode *inode = d_inode(old_dentry);
 	int error;
@@ -2633,7 +2633,7 @@ nfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
 	trace_nfs_link_exit(inode, dir, dentry, error);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_link);
+EXPORT_SYMBOL_GPL(mynfs_link);
 
 static void
 nfs_unblock_rename(struct rpc_task *task, struct nfs_renamedata *data)
@@ -2667,7 +2667,7 @@ nfs_unblock_rename(struct rpc_task *task, struct nfs_renamedata *data)
  * If these conditions are met, we can drop the dentries before doing
  * the rename.
  */
-int nfs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
+int mynfs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
 	       struct dentry *old_dentry, struct inode *new_dir,
 	       struct dentry *new_dentry, unsigned int flags)
 {
@@ -2753,7 +2753,7 @@ int nfs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
 	if (error == 0) {
 		spin_lock(&old_inode->i_lock);
 		NFS_I(old_inode)->attr_gencount = nfs_inc_attr_generation_counter();
-		nfs_set_cache_invalid(old_inode, NFS_INO_INVALID_CHANGE |
+		mynfs_set_cache_invalid(old_inode, NFS_INO_INVALID_CHANGE |
 							 NFS_INO_INVALID_CTIME |
 							 NFS_INO_REVAL_FORCED);
 		spin_unlock(&old_inode->i_lock);
@@ -2781,7 +2781,7 @@ out:
 		dput(dentry);
 	return error;
 }
-EXPORT_SYMBOL_GPL(nfs_rename);
+EXPORT_SYMBOL_GPL(mynfs_rename);
 
 static DEFINE_SPINLOCK(nfs_access_lru_lock);
 static LIST_HEAD(nfs_access_lru_list);
@@ -3012,7 +3012,7 @@ static int nfs_access_get_cached_locked(struct inode *inode, const struct cred *
 		if (cache == NULL)
 			goto out;
 		/* Found an entry, is our attribute cache valid? */
-		if (!nfs_check_cache_invalid(inode, NFS_INO_INVALID_ACCESS))
+		if (!mynfs_check_cache_invalid(inode, NFS_INO_INVALID_ACCESS))
 			break;
 		if (!retry)
 			break;
@@ -3064,7 +3064,7 @@ static int nfs_access_get_cached_rcu(struct inode *inode, const struct cred *cre
 		goto out;
 	if ((s64)(login_time - cache->timestamp) > 0)
 		goto out;
-	if (nfs_check_cache_invalid(inode, NFS_INO_INVALID_ACCESS))
+	if (mynfs_check_cache_invalid(inode, NFS_INO_INVALID_ACCESS))
 		goto out;
 	*mask = cache->mask;
 	err = 0;
@@ -3274,7 +3274,7 @@ static int nfs_execute_ok(struct inode *inode, int mask)
 
 	if (S_ISDIR(inode->i_mode))
 		return 0;
-	if (nfs_check_cache_invalid(inode, NFS_INO_INVALID_MODE)) {
+	if (mynfs_check_cache_invalid(inode, NFS_INO_INVALID_MODE)) {
 		if (mask & MAY_NOT_BLOCK)
 			return -ECHILD;
 		ret = __nfs_revalidate_inode(server, inode);

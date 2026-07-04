@@ -6,7 +6,7 @@
  *
  *  Changes Copyright (C) 1994 by Florian La Roche
  *   - Do not copy data too often around in the kernel.
- *   - In nfs_file_read the return value of kmalloc wasn't checked.
+ *   - In mynfs_file_read the return value of kmalloc wasn't checked.
  *   - Put in a better version of read look-ahead buffering. Original idea
  *     and implementation by Wai S Kok elekokws@ee.nus.sg.
  *
@@ -46,14 +46,14 @@
 
 static const struct vm_operations_struct nfs_file_vm_ops;
 
-int nfs_check_flags(int flags)
+int mynfs_check_flags(int flags)
 {
 	if ((flags & (O_APPEND | O_DIRECT)) == (O_APPEND | O_DIRECT))
 		return -EINVAL;
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_check_flags);
+EXPORT_SYMBOL_GPL(mynfs_check_flags);
 
 /*
  * Open file
@@ -66,7 +66,7 @@ nfs_file_open(struct inode *inode, struct file *filp)
 	dprintk("NFS: open file(%pD2)\n", filp);
 
 	nfs_inc_stats(inode, NFSIOS_VFSOPEN);
-	res = nfs_check_flags(filp->f_flags);
+	res = mynfs_check_flags(filp->f_flags);
 	if (res)
 		return res;
 
@@ -77,7 +77,7 @@ nfs_file_open(struct inode *inode, struct file *filp)
 }
 
 int
-nfs_file_release(struct inode *inode, struct file *filp)
+mynfs_file_release(struct inode *inode, struct file *filp)
 {
 	dprintk("NFS: release(%pD2)\n", filp);
 
@@ -86,7 +86,7 @@ nfs_file_release(struct inode *inode, struct file *filp)
 	nfs_fscache_release_file(inode, filp);
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs_file_release);
+EXPORT_SYMBOL_GPL(mynfs_file_release);
 
 /**
  * nfs_revalidate_file_size - Revalidate the file size
@@ -105,14 +105,14 @@ static int nfs_revalidate_file_size(struct inode *inode, struct file *filp)
 
 	if (filp->f_flags & O_DIRECT)
 		goto force_reval;
-	if (nfs_check_cache_invalid(inode, NFS_INO_INVALID_SIZE))
+	if (mynfs_check_cache_invalid(inode, NFS_INO_INVALID_SIZE))
 		goto force_reval;
 	return 0;
 force_reval:
 	return __nfs_revalidate_inode(server, inode);
 }
 
-loff_t nfs_file_llseek(struct file *filp, loff_t offset, int whence)
+loff_t mynfs_file_llseek(struct file *filp, loff_t offset, int whence)
 {
 	dprintk("NFS: llseek file(%pD2, %lld, %d)\n",
 			filp, offset, whence);
@@ -131,7 +131,7 @@ loff_t nfs_file_llseek(struct file *filp, loff_t offset, int whence)
 
 	return generic_file_llseek(filp, offset, whence);
 }
-EXPORT_SYMBOL_GPL(nfs_file_llseek);
+EXPORT_SYMBOL_GPL(mynfs_file_llseek);
 
 /*
  * Flush all dirty pages, and check for write errors.
@@ -155,7 +155,7 @@ nfs_file_flush(struct file *file, fl_owner_t id)
 }
 
 ssize_t
-nfs_file_read(struct kiocb *iocb, struct iov_iter *to)
+mynfs_file_read(struct kiocb *iocb, struct iov_iter *to)
 {
 	struct inode *inode = file_inode(iocb->ki_filp);
 	ssize_t result;
@@ -177,10 +177,10 @@ nfs_file_read(struct kiocb *iocb, struct iov_iter *to)
 	nfs_end_io_read(inode);
 	return result;
 }
-EXPORT_SYMBOL_GPL(nfs_file_read);
+EXPORT_SYMBOL_GPL(mynfs_file_read);
 
 int
-nfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+mynfs_file_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct inode *inode = file_inode(file);
 	int	status;
@@ -197,7 +197,7 @@ nfs_file_mmap(struct file *file, struct vm_area_struct *vma)
 	}
 	return status;
 }
-EXPORT_SYMBOL_GPL(nfs_file_mmap);
+EXPORT_SYMBOL_GPL(mynfs_file_mmap);
 
 /*
  * Flush any dirty pages for this process, and check for write errors.
@@ -221,7 +221,7 @@ nfs_file_fsync_commit(struct file *file, int datasync)
 }
 
 int
-nfs_file_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+mynfs_file_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file_inode(file);
 	struct nfs_inode *nfsi = NFS_I(inode);
@@ -250,7 +250,7 @@ nfs_file_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 	trace_nfs_fsync_exit(inode, ret);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(nfs_file_fsync);
+EXPORT_SYMBOL_GPL(mynfs_file_fsync);
 
 /*
  * Decide whether a read/modify/write cycle may be more efficient
@@ -582,7 +582,7 @@ static vm_fault_t nfs_vm_page_mkwrite(struct vm_fault *vmf)
 	}
 
 	wait_on_bit_action(&NFS_I(inode)->flags, NFS_INO_INVALIDATING,
-			   nfs_wait_bit_killable,
+			   mynfs_wait_bit_killable,
 			   TASK_KILLABLE|TASK_FREEZABLE_UNSAFE);
 
 	folio_lock(folio);
@@ -615,7 +615,7 @@ static const struct vm_operations_struct nfs_file_vm_ops = {
 	.page_mkwrite = nfs_vm_page_mkwrite,
 };
 
-ssize_t nfs_file_write(struct kiocb *iocb, struct iov_iter *from)
+ssize_t mynfs_file_write(struct kiocb *iocb, struct iov_iter *from)
 {
 	struct file *file = iocb->ki_filp;
 	struct inode *inode = file_inode(file);
@@ -695,7 +695,7 @@ out_swapfile:
 	printk(KERN_INFO "NFS: attempt to write to active swap file!\n");
 	return -ETXTBSY;
 }
-EXPORT_SYMBOL_GPL(nfs_file_write);
+EXPORT_SYMBOL_GPL(mynfs_file_write);
 
 static int
 do_getlk(struct file *filp, int cmd, struct file_lock *fl, int is_local)
@@ -807,7 +807,7 @@ out:
 /*
  * Lock a (portion of) a file
  */
-int nfs_lock(struct file *filp, int cmd, struct file_lock *fl)
+int mynfs_lock(struct file *filp, int cmd, struct file_lock *fl)
 {
 	struct inode *inode = filp->f_mapping->host;
 	int ret = -ENOLCK;
@@ -840,12 +840,12 @@ int nfs_lock(struct file *filp, int cmd, struct file_lock *fl)
 out_err:
 	return ret;
 }
-EXPORT_SYMBOL_GPL(nfs_lock);
+EXPORT_SYMBOL_GPL(mynfs_lock);
 
 /*
  * Lock a (portion of) a file
  */
-int nfs_flock(struct file *filp, int cmd, struct file_lock *fl)
+int mynfs_flock(struct file *filp, int cmd, struct file_lock *fl)
 {
 	struct inode *inode = filp->f_mapping->host;
 	int is_local = 0;
@@ -864,22 +864,22 @@ int nfs_flock(struct file *filp, int cmd, struct file_lock *fl)
 		return do_unlk(filp, cmd, fl, is_local);
 	return do_setlk(filp, cmd, fl, is_local);
 }
-EXPORT_SYMBOL_GPL(nfs_flock);
+EXPORT_SYMBOL_GPL(mynfs_flock);
 
 const struct file_operations nfs_file_operations = {
-	.llseek		= nfs_file_llseek,
-	.read_iter	= nfs_file_read,
-	.write_iter	= nfs_file_write,
-	.mmap		= nfs_file_mmap,
+	.llseek		= mynfs_file_llseek,
+	.read_iter	= mynfs_file_read,
+	.write_iter	= mynfs_file_write,
+	.mmap		= mynfs_file_mmap,
 	.open		= nfs_file_open,
 	.flush		= nfs_file_flush,
-	.release	= nfs_file_release,
-	.fsync		= nfs_file_fsync,
-	.lock		= nfs_lock,
-	.flock		= nfs_flock,
+	.release	= mynfs_file_release,
+	.fsync		= mynfs_file_fsync,
+	.lock		= mynfs_lock,
+	.flock		= mynfs_flock,
 	.splice_read	= generic_file_splice_read,
 	.splice_write	= iter_file_splice_write,
-	.check_flags	= nfs_check_flags,
+	.check_flags	= mynfs_check_flags,
 	.setlease	= simple_nosetlease,
 };
 EXPORT_SYMBOL_GPL(nfs_file_operations);

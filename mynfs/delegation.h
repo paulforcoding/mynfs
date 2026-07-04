@@ -60,7 +60,7 @@ void nfs_expire_unused_delegation_types(struct nfs_client *clp, fmode_t flags);
 void nfs_expire_unreferenced_delegations(struct nfs_client *clp);
 int nfs_client_return_marked_delegations(struct nfs_client *clp);
 int nfs_delegations_present(struct nfs_client *clp);
-void nfs_remove_bad_delegation(struct inode *inode, const nfs4_stateid *stateid);
+void mynfs_remove_bad_delegation(struct inode *inode, const nfs4_stateid *stateid);
 void nfs_delegation_mark_returned(struct inode *inode, const nfs4_stateid *stateid);
 
 void nfs_delegation_mark_reclaim(struct nfs_client *clp);
@@ -93,7 +93,7 @@ int nfs4_inode_make_writeable(struct inode *inode);
 #define NFS_DELEGATION_FLAG_TIME	BIT(1)
 
 void nfs_update_delegated_atime(struct inode *inode);
-void nfs_update_delegated_mtime(struct inode *inode);
+void mynfs_update_delegated_mtime(struct inode *inode);
 void nfs_update_delegated_mtime_locked(struct inode *inode);
 
 static inline int nfs_have_read_or_write_delegation(struct inode *inode)

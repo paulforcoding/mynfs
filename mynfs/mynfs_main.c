@@ -10,12 +10,12 @@
 #include <linux/fs.h>
 
 /* Forward declarations - defined in inode.c, nfs4super.c, nfs3super.c */
-extern int  __init init_nfs_fs(void);
-extern void __exit exit_nfs_fs(void);
-extern int  __init init_nfs_v4(void);
-extern void __exit exit_nfs_v4(void);
-extern int  __init init_nfs_v3(void);
-extern void __exit exit_nfs_v3(void);
+extern int  __init mynfs_init_nfs_fs(void);
+extern void __exit mynfs_exit_nfs_fs(void);
+extern int  __init mynfs_init_nfs_v4(void);
+extern void __exit mynfs_exit_nfs_v4(void);
+extern int  __init mynfs_init_nfs_v3(void);
+extern void __exit mynfs_exit_nfs_v3(void);
 
 static int __init mynfs_module_init(void)
 {
@@ -23,15 +23,15 @@ static int __init mynfs_module_init(void)
 
 	pr_info("mynfs: loading NFS client module (v3+v4)\n");
 
-	err = init_nfs_fs();
+	err = mynfs_init_nfs_fs();
 	if (err)
 		return err;
 
-	err = init_nfs_v4();
+	err = mynfs_init_nfs_v4();
 	if (err)
 		goto err_v4;
 
-	err = init_nfs_v3();
+	err = mynfs_init_nfs_v3();
 	if (err)
 		goto err_v3;
 
@@ -39,18 +39,18 @@ static int __init mynfs_module_init(void)
 	return 0;
 
 err_v3:
-	exit_nfs_v4();
+	mynfs_exit_nfs_v4();
 err_v4:
-	exit_nfs_fs();
+	mynfs_exit_nfs_fs();
 	return err;
 }
 
 static void __exit mynfs_module_exit(void)
 {
 	pr_info("mynfs: unloading NFS client module\n");
-	exit_nfs_v3();
-	exit_nfs_v4();
-	exit_nfs_fs();
+	mynfs_exit_nfs_v3();
+	mynfs_exit_nfs_v4();
+	mynfs_exit_nfs_fs();
 }
 
 module_init(mynfs_module_init);

@@ -61,7 +61,7 @@ static int _nfs42_proc_fallocate(struct rpc_message *msg, struct file *filep,
 	msg->rpc_argp = &args;
 	msg->rpc_resp = &res;
 
-	status = nfs4_set_rw_stateid(&args.falloc_stateid, lock->open_context,
+	status = mynfs4_set_rw_stateid(&args.falloc_stateid, lock->open_context,
 			lock, FMODE_WRITE);
 	if (status) {
 		if (status == -EAGAIN)
@@ -81,7 +81,7 @@ static int _nfs42_proc_fallocate(struct rpc_message *msg, struct file *filep,
 	if (status == 0) {
 		if (nfs_should_remove_suid(inode)) {
 			spin_lock(&inode->i_lock);
-			nfs_set_cache_invalid(inode,
+			mynfs_set_cache_invalid(inode,
 				NFS_INO_REVAL_FORCED | NFS_INO_INVALID_MODE);
 			spin_unlock(&inode->i_lock);
 		}
@@ -300,7 +300,7 @@ static void nfs42_copy_dest_done(struct inode *inode, loff_t pos, loff_t len)
 	spin_lock(&inode->i_lock);
 	if (newsize > i_size_read(inode))
 		i_size_write(inode, newsize);
-	nfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE |
+	mynfs_set_cache_invalid(inode, NFS_INO_INVALID_CHANGE |
 					     NFS_INO_INVALID_CTIME |
 					     NFS_INO_INVALID_MTIME |
 					     NFS_INO_INVALID_BLOCKS);
@@ -335,7 +335,7 @@ static ssize_t _nfs42_proc_copy(struct file *src,
 		args->cp_src = nss;
 		nfs4_stateid_copy(&args->src_stateid, cnr_stateid);
 	} else {
-		status = nfs4_set_rw_stateid(&args->src_stateid,
+		status = mynfs4_set_rw_stateid(&args->src_stateid,
 				src_lock->open_context, src_lock, FMODE_READ);
 		if (status) {
 			if (status == -EAGAIN)
@@ -343,12 +343,12 @@ static ssize_t _nfs42_proc_copy(struct file *src,
 			return status;
 		}
 	}
-	status = nfs_filemap_write_and_wait_range(src->f_mapping,
+	status = mynfs_filemap_write_and_wait_range(src->f_mapping,
 			pos_src, pos_src + (loff_t)count - 1);
 	if (status)
 		return status;
 
-	status = nfs4_set_rw_stateid(&args->dst_stateid, dst_lock->open_context,
+	status = mynfs4_set_rw_stateid(&args->dst_stateid, dst_lock->open_context,
 				     dst_lock, FMODE_WRITE);
 	if (status) {
 		if (status == -EAGAIN)
@@ -510,7 +510,7 @@ static void nfs42_offload_cancel_prepare(struct rpc_task *task, void *calldata)
 {
 	struct nfs42_offloadcancel_data *data = calldata;
 
-	nfs4_setup_sequence(data->seq_server->nfs_client,
+	mynfs4_setup_sequence(data->seq_server->nfs_client,
 				&data->args.osa_seq_args,
 				&data->res.osr_seq_res, task);
 }
@@ -520,7 +520,7 @@ static void nfs42_offload_cancel_done(struct rpc_task *task, void *calldata)
 	struct nfs42_offloadcancel_data *data = calldata;
 
 	trace_nfs4_offload_cancel(&data->args, task->tk_status);
-	nfs41_sequence_done(task, &data->res.osr_seq_res);
+	mynfs41_sequence_done(task, &data->res.osr_seq_res);
 	if (task->tk_status &&
 		nfs4_async_handle_error(task, data->seq_server, NULL,
 			NULL) == -EAGAIN)
@@ -553,7 +553,7 @@ static int nfs42_do_offload_cancel_async(struct file *dst,
 		.rpc_client = dst_server->client,
 		.rpc_message = &msg,
 		.callback_ops = &nfs42_offload_cancel_ops,
-		.workqueue = nfsiod_workqueue,
+		.workqueue = mynfs_iod_workqueue,
 		.flags = RPC_TASK_ASYNC | RPC_TASK_MOVEABLE,
 	};
 	int status;
@@ -605,7 +605,7 @@ static int _nfs42_proc_copy_notify(struct file *src, struct file *dst,
 		goto out;
 	}
 
-	status = nfs4_set_rw_stateid(&args->cna_src_stateid, ctx, l_ctx,
+	status = mynfs4_set_rw_stateid(&args->cna_src_stateid, ctx, l_ctx,
 				     FMODE_READ);
 	nfs_put_lock_context(l_ctx);
 	if (status) {
@@ -683,7 +683,7 @@ static loff_t _nfs42_proc_llseek(struct file *filep,
 	if (!nfs_server_capable(inode, NFS_CAP_SEEK))
 		return -ENOTSUPP;
 
-	status = nfs4_set_rw_stateid(&args.sa_stateid, lock->open_context,
+	status = mynfs4_set_rw_stateid(&args.sa_stateid, lock->open_context,
 			lock, FMODE_READ);
 	if (status) {
 		if (status == -EAGAIN)
@@ -691,7 +691,7 @@ static loff_t _nfs42_proc_llseek(struct file *filep,
 		return status;
 	}
 
-	status = nfs_filemap_write_and_wait_range(inode->i_mapping,
+	status = mynfs_filemap_write_and_wait_range(inode->i_mapping,
 			offset, LLONG_MAX);
 	if (status)
 		return status;
@@ -757,7 +757,7 @@ nfs42_layoutstat_prepare(struct rpc_task *task, void *calldata)
 	}
 	nfs4_stateid_copy(&data->args.stateid, &lo->plh_stateid);
 	spin_unlock(&inode->i_lock);
-	nfs4_setup_sequence(server->nfs_client, &data->args.seq_args,
+	mynfs4_setup_sequence(server->nfs_client, &data->args.seq_args,
 			    &data->res.seq_res, task);
 }
 
@@ -768,7 +768,7 @@ nfs42_layoutstat_done(struct rpc_task *task, void *calldata)
 	struct inode *inode = data->inode;
 	struct pnfs_layout_hdr *lo;
 
-	if (!nfs4_sequence_done(task, &data->res.seq_res))
+	if (!mynfs4_sequence_done(task, &data->res.seq_res))
 		return;
 
 	switch (task->tk_status) {
@@ -776,7 +776,7 @@ nfs42_layoutstat_done(struct rpc_task *task, void *calldata)
 		return;
 	case -NFS4ERR_BADHANDLE:
 	case -ESTALE:
-		pnfs_destroy_layout(NFS_I(inode));
+		mypnfs_destroy_layout(NFS_I(inode));
 		break;
 	case -NFS4ERR_EXPIRED:
 	case -NFS4ERR_ADMIN_REVOKED:
@@ -903,7 +903,7 @@ nfs42_alloc_layouterror_data(struct pnfs_layout_segment *lseg, gfp_t gfp_flags)
 static void
 nfs42_free_layouterror_data(struct nfs42_layouterror_data *data)
 {
-	pnfs_put_lseg(data->lseg);
+	mypnfs_put_lseg(data->lseg);
 	nfs_iput_and_deactive(data->inode);
 	kfree(data);
 }
@@ -927,7 +927,7 @@ nfs42_layouterror_prepare(struct rpc_task *task, void *calldata)
 		nfs4_stateid_copy(&data->args.errors[i].stateid,
 				&lo->plh_stateid);
 	spin_unlock(&inode->i_lock);
-	nfs4_setup_sequence(server->nfs_client, &data->args.seq_args,
+	mynfs4_setup_sequence(server->nfs_client, &data->args.seq_args,
 			    &data->res.seq_res, task);
 }
 
@@ -938,7 +938,7 @@ nfs42_layouterror_done(struct rpc_task *task, void *calldata)
 	struct inode *inode = data->inode;
 	struct pnfs_layout_hdr *lo = data->lseg->pls_layout;
 
-	if (!nfs4_sequence_done(task, &data->res.seq_res))
+	if (!mynfs4_sequence_done(task, &data->res.seq_res))
 		return;
 
 	switch (task->tk_status) {
@@ -946,7 +946,7 @@ nfs42_layouterror_done(struct rpc_task *task, void *calldata)
 		return;
 	case -NFS4ERR_BADHANDLE:
 	case -ESTALE:
-		pnfs_destroy_layout(NFS_I(inode));
+		mypnfs_destroy_layout(NFS_I(inode));
 		break;
 	case -NFS4ERR_EXPIRED:
 	case -NFS4ERR_ADMIN_REVOKED:
@@ -1006,7 +1006,7 @@ static const struct rpc_call_ops nfs42_layouterror_ops = {
 	.rpc_release = nfs42_layouterror_release,
 };
 
-int nfs42_proc_layouterror(struct pnfs_layout_segment *lseg,
+int mynfs42_proc_layouterror(struct pnfs_layout_segment *lseg,
 		const struct nfs42_layout_error *errors, size_t n)
 {
 	struct inode *inode = lseg->pls_layout->plh_inode;
@@ -1045,7 +1045,7 @@ int nfs42_proc_layouterror(struct pnfs_layout_segment *lseg,
 	rpc_put_task(task);
 	return 0;
 }
-EXPORT_SYMBOL_GPL(nfs42_proc_layouterror);
+EXPORT_SYMBOL_GPL(mynfs42_proc_layouterror);
 
 static int _nfs42_proc_clone(struct rpc_message *msg, struct file *src_f,
 		struct file *dst_f, struct nfs_lock_context *src_lock,
@@ -1072,14 +1072,14 @@ static int _nfs42_proc_clone(struct rpc_message *msg, struct file *src_f,
 	msg->rpc_argp = &args;
 	msg->rpc_resp = &res;
 
-	status = nfs4_set_rw_stateid(&args.src_stateid, src_lock->open_context,
+	status = mynfs4_set_rw_stateid(&args.src_stateid, src_lock->open_context,
 			src_lock, FMODE_READ);
 	if (status) {
 		if (status == -EAGAIN)
 			status = -NFS4ERR_BAD_STATEID;
 		return status;
 	}
-	status = nfs4_set_rw_stateid(&args.dst_stateid, dst_lock->open_context,
+	status = mynfs4_set_rw_stateid(&args.dst_stateid, dst_lock->open_context,
 			dst_lock, FMODE_WRITE);
 	if (status) {
 		if (status == -EAGAIN)

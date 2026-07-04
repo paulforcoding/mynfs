@@ -8,25 +8,25 @@
 #include "nfs3_fs.h"
 #include "nfs.h"
 
-struct nfs_subversion nfs_v3 = {
+struct nfs_subversion mynfs_v3 = {
 	.owner = THIS_MODULE,
-	.nfs_fs   = &nfs_fs_type,
+	.nfs_fs   = &mynfs_fs_type,
 	.rpc_vers = &nfs_version3,
 	.rpc_ops  = &nfs_v3_clientops,
-	.sops     = &nfs_sops,
+	.sops     = &mynfs_sops,
 #ifdef CONFIG_NFS_V3_ACL
 	.xattr    = nfs3_xattr_handlers,
 #endif
 };
 
-int __init init_nfs_v3(void)
+int __init mynfs_init_nfs_v3(void)
 {
-	register_nfs_version(&nfs_v3);
+	mynfs_register_nfs_version(&mynfs_v3);
 	return 0;
 }
 
-void __exit exit_nfs_v3(void)
+void __exit mynfs_exit_nfs_v3(void)
 {
-	unregister_nfs_version(&nfs_v3);
+	mynfs_unregister_nfs_version(&mynfs_v3);
 }
 
