@@ -2564,7 +2564,7 @@ static int nfs_net_init(struct net *net)
 	return 0;
 
 err_proc_nfs:
-	rpc_proc_unregister(net, "nfs");
+	rpc_proc_unregister(net, "mynfs");
 err_proc_rpc:
 	nfs_clients_exit(net);
 	return err;
@@ -2572,7 +2572,7 @@ err_proc_rpc:
 
 static void nfs_net_exit(struct net *net)
 {
-	rpc_proc_unregister(net, "nfs");
+	rpc_proc_unregister(net, "mynfs");
 	nfs_fs_proc_net_exit(net);
 	nfs_clients_exit(net);
 }

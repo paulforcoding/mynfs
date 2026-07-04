@@ -46,15 +46,15 @@ mynfs-y := client.o \
 	   dns_resolve.o \
 	   cache_lib.o \
 	   nfs4sysctl.o \
-	   nfs42proc.o \
-	   nfs42xattr.o \
 	   fscache.o \
 	   pnfs.o \
 	   pnfs_dev.o \
 	   pnfs_nfs.o \
+	   nfs42proc.o \
+	   nfs42xattr.o \
 	   mynfs_main.o
 
-# Trace objects need -I$(src) so define_trace.h can re-include our headers
+# Trace objects
 mynfs-y += nfstrace.o
 mynfs-y += nfs4trace.o
 
@@ -63,6 +63,8 @@ ccflags-y += -DCONFIG_NFS_V4
 ccflags-y += -DCONFIG_NFS_V4_1
 ccflags-y += -DCONFIG_NFS_V4_2
 ccflags-y += -DCONFIG_NFS_FSCACHE
+ccflags-y += -DCONFIG_NFS_USE_KERNEL_DNS
+
 CFLAGS_nfstrace.o  += -I$(src)
 CFLAGS_nfs4trace.o += -I$(src)
 
